@@ -10,19 +10,26 @@ import (
 )
 
 func SetupRouter(urlH *handler.URLHandler, sysH *handler.SystemHandler, frontendURL string) *gin.Engine {
-	r := gin.Default()
+    r := gin.Default()
 
-	r.Use(middleware.SetupCORS(frontendURL))
+    // 1. Setup CORS Middleware
+    r.Use(middleware.SetupCORS(frontendURL))
 
-	// Swagger documentation
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+    // 2. ADD THIS: Global OPTIONS handler
+    // This ensures every preflight request gets a 200 OK status.
+    r.OPTIONS("/*any", func(c *gin.Context) {
+        c.AbortWithStatus(200)
+    })
 
-	// System Routes (Health, Metrics, etc.)
-	r.GET("/health", sysH.HealthCheck)
+    // Swagger documentation
+    r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	// Business Routes
-	r.POST("/shorten", urlH.ShortenURL)
-	r.GET("/:code", urlH.ResolveURL)
+    // System Routes
+    r.GET("/health", sysH.HealthCheck)
 
-	return r
+    // Business Routes
+    r.POST("/shorten", urlH.ShortenURL)
+    r.GET("/:code", urlH.ResolveURL)
+
+    return r
 }
