@@ -11,20 +11,27 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // Use environment variable, fallback to localhost for dev
+    const API_BASE_URL =
+      import.meta.env.VITE_API_URL || "http://localhost:8080";
+
     try {
-      const response = await fetch("/api/shorten", {
+      const response = await fetch(`${API_BASE_URL}/api/shorten`, {
+        // Updated URL
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({long_url: url}),
+        body: JSON.stringify({long_url: url}), // Ensure this matches your Go struct tags
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`API error (${response.status}): ${errorText}`);
       }
 
       const data = await response.json();
-      console.log("Response data:", data);
 
+      // Your Go backend likely returns { "short_url": "..." }
       if (!data.short_url) {
         throw new Error("No short_url in response");
       }

@@ -1,24 +1,40 @@
 variable "aws_profile" {
-  description = "AWS profile name"
+  description = "AWS profile name from your local ~/.aws/credentials"
   type        = string
 }
 
 variable "aws_region" {
-  description = "AWS region"
+  description = "The AWS region to deploy resources into"
   type        = string
 }
 
 variable "bucket_name" {
-  default = "bucket_name"
-  type = string
+  description = "Globally unique name for the S3 frontend bucket"
+  type        = string
 }
 
 variable "created_by" {
-  default = "your name" 
-  type = string
+  description = "Tag to identify resource ownership"
+  type        = string
 }
 
 variable "object_ownership" {
-  default = "BucketOwnerPreferred"
-  type = string
+  description = "S3 Object Ownership setting"
+  default     = "BucketOwnerPreferred"
+  type        = string
+}
+
+# --- Database Variables ---
+variable "db_user" { 
+  type = string 
+}
+
+variable "db_name" { 
+  type = string 
+}
+
+variable "db_password" {
+  type      = string
+  sensitive = true
+  description = "The master password for the database"
 }

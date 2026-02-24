@@ -1,40 +1,37 @@
-# Environment variables
+# Environment variables (Secrets)
 .env
 .env.local
 .env.*.local
-
-# Terraform sensitive data
 *.tfvars
 *.tfvars.json
-terraform.tfstate
-terraform.tfstate.backup
-.terraform/
 
-# Binaries and icons
-backend/main
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.tfstate.lock.info
+.terraform.lock.hcl
+
+# Go Binaries (Artifacts)
 backend/bootstrap
+backend/main
 backend/*.zip
 backend/*.exe
 backend/*.test
-
-# Dependency directories
 backend/vendor/
 
-# Database data (from your docker-compose volumes)
-postgres_data/
-
-# Docker Desktop logs
-.docker/
-
+# Frontend Artifacts
 frontend/node_modules/
 frontend/dist/
 frontend/.env.local
 
-# Editors
+# System/IDEs
 .vscode/
 .idea/
-*.swp
-
-# OS files
 .DS_Store
 Thumbs.db
+
+# Data/Logs
+postgres_data/
+.docker/
+*.log

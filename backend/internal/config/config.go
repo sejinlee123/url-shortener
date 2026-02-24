@@ -12,21 +12,23 @@ type Config struct {
 	RedisPort string
 	RedisPass string
 	AppPort   string
+	FrontendURL string
 }
 
 // Load gathers all environment variables into a single struct
 func Load() *Config {
-	return &Config{
-		DBHost:    getEnv("DB_HOST", "localhost"),
-		DBUser:    getEnv("DB_USER", "user"),
-		DBPass:    getEnv("DB_PASSWORD", "password"),
-		DBName:    getEnv("DB_NAME", "url_shortener"),
-		DBPort:    getEnv("DB_PORT", "5432"),
-		RedisHost: getEnv("REDIS_HOST", "localhost"),
-		RedisPort: getEnv("REDIS_PORT", "6379"),
-		RedisPass: getEnv("REDIS_PASSWORD", ""),
-		AppPort:   getEnv("APP_PORT", "8080"),
-	}
+    return &Config{
+        DBHost:      getEnv("DB_HOST", ""), // Leave empty to force failure if missing
+        DBUser:      getEnv("DB_USER", ""),
+        DBPass:      getEnv("DB_PASSWORD", ""),
+        DBName:      getEnv("DB_NAME", ""),
+        DBPort:      getEnv("DB_PORT", "5432"),
+        RedisHost:   getEnv("REDIS_HOST", ""),
+        RedisPort:   getEnv("REDIS_PORT", "6379"),
+        RedisPass:   getEnv("REDIS_PASSWORD", ""),
+        AppPort:     getEnv("APP_PORT", "8080"),
+        FrontendURL: getEnv("FRONTEND_URL", "http://localhost:5173"), // Default for dev
+    }
 }
 
 func getEnv(key, fallback string) string {

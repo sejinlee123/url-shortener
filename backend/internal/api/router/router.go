@@ -9,10 +9,10 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func SetupRouter(urlH *handler.URLHandler, sysH *handler.SystemHandler) *gin.Engine {
+func SetupRouter(urlH *handler.URLHandler, sysH *handler.SystemHandler, frontendURL string) *gin.Engine {
 	r := gin.Default()
 
-	r.Use(middleware.SetupCORS())
+	r.Use(middleware.SetupCORS(frontendURL))
 
 	// Swagger documentation
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

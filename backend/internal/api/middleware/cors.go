@@ -7,13 +7,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupCORS() gin.HandlerFunc {
+func SetupCORS(frontendURL string) gin.HandlerFunc {
+    // If empty, we still provide a safe local fallback
+    if frontendURL == "" {
+        frontendURL = "http://localhost:5173"
+    }
+
     return cors.New(cors.Config{
-        // Add both just to be safe, plus the 127.0.0.1 variant
         AllowOrigins: []string{
-            "http://localhost:5173", 
+            frontendURL,            // Value from Terraform/Config
             "http://127.0.0.1:5173",
-            "http://localhost:3000", // Keep this if you use it sometimes
         },
         AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
         AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},

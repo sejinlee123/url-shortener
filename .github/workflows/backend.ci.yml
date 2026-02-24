@@ -5,57 +5,66 @@ on:
     branches: [main]
 
 jobs:
-  backend:
-    name: Backend Test and Build
+  terraform-and-backend:
+    name: Infrastructure and Backend
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
           go-version: "1.21"
-          cache-dependency-path: backend/go.sum
 
-      - name: Run Tests
-        working-directory: ./backend
-        run: go test -v ./...
-
-      - name: Build Binary (Hybrid Approach)
-        working-directory: ./backend
-        # Building for AWS Lambda (Linux ARM64 is best for cost/performance)
+      - name: Build Go Binary
         run: |
-          GOOS=linux GOARCH=arm64 go build -o bootstrap cmd/api/main.go
-          zip lambda_function.zip bootstrap
+          cd backend
+          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o bootstrap cmd/api/main.go
+          zip ../lambda_function.zip bootstrap
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
-          name: backend-zip
-          path: backend/lambda_function.zip
+          terraform_wrapper: false
 
-  frontend:
-    name: Frontend Build
+      - name: Terraform Apply
+        id: tf-apply
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          terraform init
+          terraform apply -auto-approve
+          # We save it as API_URL here
+          echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_OUTPUT
+
+    outputs:
+      api_url: ${{ steps.tf-apply.outputs.API_URL }} # Matches the uppercase 'API_URL' above
+
+  frontend-deploy:
+    name: Build and Deploy Frontend
+    needs: terraform-and-backend
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: "20"
 
-      - name: Install & Build
-        working-directory: ./frontend
+      - name: Build Frontend
+        working-directory: ./url_shortener # Updated to your directory name
+        env:
+          VITE_API_URL: ${{ needs.terraform-and-backend.outputs.api_url }}
         run: |
           npm install
           npm run build
 
-      - name: Upload Frontend Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist
-          path: frontend/dist/
+      - name: Sync to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          # Syncing from the url_shortener/dist folder
+          aws s3 sync ./url_shortener/dist s3://url-shortener-s3-bucket-sejinlee123 --delete
