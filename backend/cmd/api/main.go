@@ -1,6 +1,12 @@
 package main
 
 import (
+	"context"
+	"os"
+
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
+	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 
 	// Import your generated docs
 	_ "github.com/sejinlee123/Url_Shortener_Fun/backend/docs"
@@ -15,6 +21,7 @@ import (
 	"github.com/sejinlee123/Url_Shortener_Fun/backend/internal/usecase"
 )
 
+var ginLambda *ginadapter.GinLambdaV2
 
 func main() {
     cfg := config.Load()
@@ -35,12 +42,24 @@ func main() {
     gen := generator.NewShortUrlGenerator(0)
     uc := usecase.NewURLUsecase(repo, gen, redisClient)
 
-    // Handlers and Router
     h := handler.NewURLHandler(uc)
     sysH := handler.NewSystemHandler()
 
-    // Pass the FrontendURL from your config into the router
+    // Create the Gin Engine
     r := router.SetupRouter(h, sysH, cfg.FrontendURL)
 
-    r.Run(":" + cfg.AppPort)
+    // Check if we are running in the AWS Lambda environment
+    if os.Getenv("AWS_LAMBDA_FUNCTION_NAME") != "" {
+        // Use the adapter for Lambda
+        ginLambda = ginadapter.NewV2(r)
+        lambda.Start(Handler)
+    } else {
+        // Run as a normal web server for local development
+        r.Run(":" + cfg.AppPort)
+    }
+}
+
+// Handler converts the API Gateway V2 Event to a Gin Request and back
+func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
+    return ginLambda.ProxyWithContextV2(ctx, req)
 }
