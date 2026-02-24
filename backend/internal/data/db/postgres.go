@@ -9,7 +9,7 @@ import (
 )
 
 func NewPostgresDB(host, user, pass, name, port string) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
 		host, user, pass, name, port)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
