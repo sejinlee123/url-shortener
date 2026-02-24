@@ -12,32 +12,29 @@ import (
 func SetupRouter(urlH *handler.URLHandler, sysH *handler.SystemHandler, frontendURL string) *gin.Engine {
     r := gin.Default()
 
-    // 1. Setup CORS Middleware first
+    // 1. Middleware applies to EVERYTHING
     r.Use(middleware.SetupCORS(frontendURL))
 
-    // 2. Handle the /api group to match your CloudFront/API Gateway calls
-    // This solves the 'GET /' and '404' issue
+    // 2. The /api group (Matches your CloudFront/Browser calls)
     api := r.Group("/api")
     {
-        // Global OPTIONS catcher inside the group
+        // This handles OPTIONS for /api/shorten, /api/health, etc.
         api.OPTIONS("/*any", func(c *gin.Context) {
             c.AbortWithStatus(200)
         })
 
-        // Business Routes now respond to /api/shorten and /api/:code
         api.POST("/shorten", urlH.ShortenURL)
         api.GET("/health", sysH.HealthCheck)
         api.GET("/:code", urlH.ResolveURL)
     }
 
-    // 3. Keep root-level routes for health checks and local dev
+    // 3. Root-level routes (No wildcard here to avoid the panic)
     r.GET("/health", sysH.HealthCheck)
     r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
     
-    // Catch-all OPTIONS for the root level just in case
-    r.OPTIONS("/*any", func(c *gin.Context) {
-        c.AbortWithStatus(200)
-    })
+    // If you need an OPTIONS handler for the root level, 
+    // define it for specific paths or use a middleware-based approach 
+    // instead of /*any. But for your current bug, the /api group is what matters.
 
     return r
 }
