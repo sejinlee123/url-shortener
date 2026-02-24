@@ -1,0 +1,99 @@
+definitions:
+  handler.ShortenRequest:
+    properties:
+      long_url:
+        example: https://www.google.com
+        type: string
+    required:
+    - long_url
+    type: object
+  handler.ShortenResponse:
+    properties:
+      short_url:
+        example: http://localhost:8080/a4fee6e7
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /{code}:
+    get:
+      consumes:
+      - application/json
+      description: Takes a short code, increments the visit count in the background,
+        and redirects the user to the original destination URL.
+      parameters:
+      - description: The 8-character unique short code (e.g., a4fee6e7)
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "301":
+          description: Redirecting to the original URL...
+          headers:
+            Location:
+              description: The destination URL
+              type: string
+          schema:
+            type: string
+        "404":
+          description: 'Error: The short link does not exist'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Resolve and Redirect
+      tags:
+      - URLs
+  /health:
+    get:
+      description: Used by Kubernetes/Docker to see if the container is alive
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Liveness Probe
+      tags:
+      - System
+  /shorten:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Long URL to shorten
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.ShortenRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.ShortenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a short URL
+      tags:
+      - URLs
+swagger: "2.0"

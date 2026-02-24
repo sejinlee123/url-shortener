@@ -1,0 +1,40 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Terraform sensitive data
+*.tfvars
+*.tfvars.json
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+
+# Binaries and icons
+backend/main
+backend/bootstrap
+backend/*.zip
+backend/*.exe
+backend/*.test
+
+# Dependency directories
+backend/vendor/
+
+# Database data (from your docker-compose volumes)
+postgres_data/
+
+# Docker Desktop logs
+.docker/
+
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db

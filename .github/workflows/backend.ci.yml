@@ -1,0 +1,61 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend Test and Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+          cache-dependency-path: backend/go.sum
+
+      - name: Run Tests
+        working-directory: ./backend
+        run: go test -v ./...
+
+      - name: Build Binary (Hybrid Approach)
+        working-directory: ./backend
+        # Building for AWS Lambda (Linux ARM64 is best for cost/performance)
+        run: |
+          GOOS=linux GOARCH=arm64 go build -o bootstrap cmd/api/main.go
+          zip lambda_function.zip bootstrap
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-zip
+          path: backend/lambda_function.zip
+
+  frontend:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install & Build
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run build
+
+      - name: Upload Frontend Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
