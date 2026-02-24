@@ -8,6 +8,11 @@ jobs:
   terraform-and-backend:
     name: Infrastructure and Backend
     runs-on: ubuntu-latest
+    # FIX 1: Move env to the job level so 'terraform init' can see them
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-2 # Explicitly set your region
     steps:
       - uses: actions/checkout@v4
 
@@ -30,17 +35,14 @@ jobs:
       - name: Terraform Apply
         id: tf-apply
         working-directory: ./terraform
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           terraform init
           terraform apply -auto-approve
-          # We save it as API_URL here
+          # FIX 2: Export exactly as named in the job 'outputs' section
           echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_OUTPUT
 
     outputs:
-      api_url: ${{ steps.tf-apply.outputs.API_URL }} # Matches the uppercase 'API_URL' above
+      api_url: ${{ steps.tf-apply.outputs.API_URL }}
 
   frontend-deploy:
     name: Build and Deploy Frontend
@@ -55,7 +57,7 @@ jobs:
           node-version: "20"
 
       - name: Build Frontend
-        working-directory: ./url_shortener # Updated to your directory name
+        working-directory: ./url_shortener
         env:
           VITE_API_URL: ${{ needs.terraform-and-backend.outputs.api_url }}
         run: |
@@ -67,5 +69,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          # Syncing from the url_shortener/dist folder
+          # FIX 3: Ensure this path matches where 'npm run build' puts your files
+          # Usually it's inside the working directory's dist folder
           aws s3 sync ./url_shortener/dist s3://url-shortener-s3-bucket-sejinlee123 --delete
