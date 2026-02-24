@@ -61,5 +61,5 @@ func main() {
 
 // Handler converts the API Gateway V2 Event to a Gin Request and back
 func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-    return ginLambda.ProxyWithContextV2(ctx, req)
+    return ginLambda.ProxyWithContext(ctx, req)
 }
