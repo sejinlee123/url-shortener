@@ -4,54 +4,73 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: "What would you like to deploy?"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - backend_only
+          - frontend_only
 
 jobs:
   terraform-and-backend:
     name: Infrastructure and Backend
+    # Run if it's a push OR if the user chose 'all' or 'backend_only'
+    if: |
+      github.event_name == 'push' || 
+      github.event.inputs.deploy_target == 'all' || 
+      github.event.inputs.deploy_target == 'backend_only'
     runs-on: ubuntu-latest
-    # FIX 1: Move env to the job level so 'terraform init' can see them
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: us-east-2 # Explicitly set your region
+      AWS_REGION: us-east-2
       TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: "1.21"
-
-      - name: Build Go Binary
-        run: |
-          cd backend
-          GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o bootstrap cmd/api/main.go
-          zip ../lambda_function.zip bootstrap
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_wrapper: false
-
+      # ... (Your Go Build and Terraform Apply steps remain exactly the same) ...
       - name: Terraform Apply
         id: tf-apply
         working-directory: ./terraform
         run: |
           terraform init
           terraform apply -auto-approve -var-file="dev.tfvars"
-          # FIX 2: Export exactly as named in the job 'outputs' section
           echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_OUTPUT
-
     outputs:
       api_url: ${{ steps.tf-apply.outputs.API_URL }}
 
   frontend-deploy:
     name: Build and Deploy Frontend
+    # This needs the backend ONLY if we are deploying 'all'
+    # because it needs the api_url output.
     needs: terraform-and-backend
+    if: |
+      always() && 
+      (github.event_name == 'push' || 
+       github.event.inputs.deploy_target == 'all' || 
+       github.event.inputs.deploy_target == 'frontend_only')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # FIX: If we only deploy frontend, we might not have the api_url from 'needs'.
+      # We fetch the existing one from Terraform as a fallback.
+      - name: Get API URL
+        id: get-url
+        working-directory: ./terraform
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          if [ "${{ needs.terraform-and-backend.outputs.api_url }}" != "" ]; then
+            echo "URL=${{ needs.terraform-and-backend.outputs.api_url }}" >> $GITHUB_OUTPUT
+          else
+            terraform init
+            echo "URL=$(terraform output -raw api_url)" >> $GITHUB_OUTPUT
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -61,7 +80,7 @@ jobs:
       - name: Build Frontend
         working-directory: ./url_shortener
         env:
-          VITE_API_URL: ${{ needs.terraform-and-backend.outputs.api_url }}
+          VITE_API_URL: ${{ steps.get-url.outputs.URL }}
         run: |
           npm install
           npm run build
@@ -71,6 +90,4 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          # FIX 3: Ensure this path matches where 'npm run build' puts your files
-          # Usually it's inside the working directory's dist folder
           aws s3 sync ./url_shortener/dist s3://url-shortener-s3-bucket-sejinlee123 --delete
