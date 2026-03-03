@@ -15,8 +15,9 @@ func SetupCORS(frontendURL string) gin.HandlerFunc {
     return cors.New(cors.Config{
         // Add only the origins you trust
         AllowOrigins:     []string{frontendURL},
-        AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
-        AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+        AllowMethods:     []string{"GET", "POST", "OPTIONS", "PUT", "DELETE"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
         AllowCredentials: true,
         MaxAge:           12 * time.Hour,
     })
