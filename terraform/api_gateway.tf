@@ -1,6 +1,14 @@
 resource "aws_apigatewayv2_api" "backend_api" {
   name          = "url-shortener-gateway"
   protocol_type = "HTTP"
+
+  # FIX: Add CORS configuration to handle preflight OPTIONS requests automatically
+  cors_configuration {
+    allow_origins = ["https://${aws_cloudfront_distribution.website_cdn.domain_name}"]
+    allow_methods = ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
+    allow_headers = ["Content-Type", "Authorization"]
+    max_age       = 300
+  }
 }
 
 resource "aws_apigatewayv2_stage" "default" {
