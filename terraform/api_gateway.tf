@@ -16,6 +16,7 @@ resource "aws_apigatewayv2_integration" "lambda_handler" {
   integration_type   = "AWS_PROXY"
   integration_method = "POST"
   integration_uri    = aws_lambda_function.api.invoke_arn
+  payload_format_version = "2.0"
 }
 
 # Route 1: Catch all API calls (Handles /api/shorten, /api/health, etc.)
