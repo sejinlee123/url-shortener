@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -62,8 +63,7 @@ func main() {
 
 // Handler converts the API Gateway V2 Event to a Gin Request and back
 func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-    fmt.Printf("DEBUG: Incoming Path: %s\n", req.RequestContext.HTTP.Path)
-    fmt.Printf("DEBUG: Incoming RawPath: %s\n", req.RawPath)
-    fmt.Printf("DEBUG: Incoming Method: %s\n", req.RequestContext.HTTP.Method)
+    eventJSON, _ := json.Marshal(req)
+    fmt.Printf("DEBUG: FULL EVENT PAYLOAD: %s\n", string(eventJSON))
     return ginLambda.ProxyWithContext(ctx, req)
 }

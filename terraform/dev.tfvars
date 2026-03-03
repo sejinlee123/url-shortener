@@ -8,3 +8,4 @@ created_by  = "Sejin"
 # If you are using AWS RDS, these come from the RDS instance dashboard
 db_name     = "url_shortener"
 db_user     = "postgres"
+frontend_url = "https://d33da48w2ojxhr.cloudfront.net"
