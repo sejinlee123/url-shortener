@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sejinlee123/Url_Shortener_Fun/backend/internal/domain"
@@ -33,6 +34,7 @@ func NewURLHandler(u domain.ShortURLUsecase) *URLHandler {
 // @Failure      400      {object}  map[string]string
 // @Router       /shorten [post]
 func (h *URLHandler) ShortenURL(c *gin.Context) {
+	FRONTEND_URL := os.Getenv("FRONTEND_URL")
 	var req ShortenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid URL provided"})
@@ -45,7 +47,7 @@ func (h *URLHandler) ShortenURL(c *gin.Context) {
 		return
 	}
 
-	fullShortURL := "http://localhost:8080/" + shortCode
+	fullShortURL := FRONTEND_URL + shortCode
 	c.JSON(http.StatusCreated, ShortenResponse{ShortURL: fullShortURL})
 }
 
