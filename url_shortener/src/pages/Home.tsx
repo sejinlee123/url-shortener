@@ -1,7 +1,8 @@
 import {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
+import {useNavigate, Link} from "react-router-dom";
 import {Link2, Sparkles, Copy, Check} from "lucide-react";
 import Layout from "../components/Layout";
+import {shortenUrl} from "../api/client";
 
 const HISTORY_KEY = "url_shortener_history";
 
@@ -29,46 +30,28 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [shortUrl, setShortUrl] = useState("");
   const [copied, setCopied] = useState(false);
+  const [hasHistory, setHasHistory] = useState(false);
 
-  // If we already have history, send the user to the dashboard
+  // Detect existing history (but keep landing page visible)
   useEffect(() => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        navigate("/dashboard", {replace: true});
+        setHasHistory(true);
       }
     } catch {
       // ignore parse issues
     }
-  }, [navigate]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
-
     try {
-      const response = await fetch(`${API_BASE_URL}/api/shorten`, {
-        // Updated URL
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({long_url: url}), // Ensure this matches your Go struct tags
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API error (${response.status}): ${errorText}`);
-      }
-
-      const data = await response.json();
-
-      // Your Go backend likely returns { "short_url": "..." }
-      if (!data.short_url) {
-        throw new Error("No short_url in response");
-      }
+      const data = await shortenUrl(url);
 
       setShortUrl(data.short_url);
 
@@ -116,6 +99,17 @@ export default function Home() {
         <p className="text-[#99582a] mt-2 text-lg">
           Fast, reliable, and trackable URL shortening.
         </p>
+
+        {hasHistory && (
+          <div className="mt-4">
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-[#6f1d1b] hover:bg-[#432818] text-[#ffe6a7] transition-colors"
+            >
+              View your recent links
+            </Link>
+          </div>
+        )}
       </div>
 
       {!shortUrl ? (
@@ -174,12 +168,20 @@ export default function Home() {
             )}
           </button>
 
-          <button
-            onClick={() => setShortUrl("")}
-            className="text-[#6f1d1b] hover:text-[#432818] font-semibold"
-          >
-            Shorten Another URL
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-2">
+            <button
+              onClick={() => setShortUrl("")}
+              className="text-[#6f1d1b] hover:text-[#432818] font-semibold"
+            >
+              Shorten Another URL
+            </button>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="bg-[#bb9457] hover:bg-[#99582a] text-[#432818] font-semibold px-4 py-2 rounded-lg transition-all text-sm"
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
       )}
     </Layout>

@@ -1,18 +1,23 @@
 import {useEffect, useState} from "react";
 import {useParams} from "react-router-dom";
 import {Loader2} from "lucide-react";
+import {buildRedirectUrl} from "../api/client";
 
 export default function RedirectHandler() {
   const {code} = useParams();
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    const API_BASE = import.meta.env.VITE_API_URL ?? "";
-    if (!code || !API_BASE) {
+    if (!code) {
       setError(true);
       return;
     }
-    window.location.replace(`${API_BASE}/api/${code}`);
+    const url = buildRedirectUrl(code);
+    if (!url) {
+      setError(true);
+      return;
+    }
+    window.location.replace(url);
   }, [code]);
 
   if (error) {

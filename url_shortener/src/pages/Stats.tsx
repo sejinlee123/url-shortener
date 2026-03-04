@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import {useParams, Link} from "react-router-dom";
 import {Copy, Check, BarChart3, ArrowLeft, ExternalLink} from "lucide-react";
 import Layout from "../components/Layout";
+import {fetchStats} from "../api/client";
 
 export default function Stats() {
   const {code} = useParams();
@@ -11,10 +12,8 @@ export default function Stats() {
   const shortUrl = `${window.location.origin}/r/${code}`;
 
   useEffect(() => {
-    const apiBase = import.meta.env.VITE_API_URL ?? "";
-    if (!apiBase) return;
-    fetch(`${apiBase}/api/stats/${code}`)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Not found"))))
+    if (!code) return;
+    fetchStats(code)
       .then(setStats)
       .catch(console.error);
   }, [code]);

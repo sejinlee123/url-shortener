@@ -33,8 +33,8 @@ func (u *URLUsecase) Shorten(ctx context.Context, originalURL string) (string, e
 		return "", err
 	}
 
-	// Default TTL: 30 days from creation
-	expiresAt := time.Now().Add(30 * 24 * time.Hour)
+	// Default TTL: 7 days from creation (extended on each visit)
+	expiresAt := time.Now().Add(7 * 24 * time.Hour)
 
 	url := &domain.ShortURL{
 		OriginalURL: originalURL,
@@ -70,6 +70,13 @@ func (u *URLUsecase) Resolve(ctx context.Context, code string) (string, error) {
 				log.Printf("failed to delete expired url %s: %v", code, delErr)
 			}
 			return "", errors.New("url expired")
+		}
+
+		// Extend expiry on successful resolve (keeps active links alive)
+		newExpiry := time.Now().Add(7 * 24 * time.Hour)
+		url.ExpiresAt = &newExpiry
+		if updErr := u.repo.Update(ctx, url); updErr != nil {
+			log.Printf("failed to extend expiry for %s: %v", code, updErr)
 		}
 
 		longURL = url.OriginalURL

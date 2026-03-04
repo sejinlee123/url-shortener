@@ -16,6 +16,22 @@ export default function Dashboard() {
   const [links, setLinks] = useState<SavedLink[]>([]);
   const navigate = useNavigate();
 
+  const syncAndSet = (next: SavedLink[]) => {
+    setLinks(next);
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const handleDelete = (code: string, createdAt: string) => {
+    const next = links.filter(
+      (l) => !(l.code === code && l.createdAt === createdAt),
+    );
+    syncAndSet(next);
+  };
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
@@ -53,7 +69,7 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="bg-white border border-[#bb9457] rounded-3xl shadow-2xl p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-extrabold text-[#432818] tracking-tight">
@@ -102,6 +118,12 @@ export default function Dashboard() {
                     <BarChart3 size={14} />
                     View stats
                   </Link>
+                  <button
+                    onClick={() => handleDelete(link.code, link.createdAt)}
+                    className="text-[11px] font-semibold text-[#6f1d1b] hover:text-[#432818] underline"
+                  >
+                    Delete
+                  </button>
                   <span className="text-[10px] text-[#99582a]">
                     {new Date(link.createdAt).toLocaleString()}
                   </span>
