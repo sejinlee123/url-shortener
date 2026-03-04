@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -26,20 +27,23 @@ func NewURLUsecase(repo domain.ShortURLRepository, gen *generator.ShortUrlGenera
 
 
 
-func (u *URLUsecase) Shorten(ctx context.Context, originalURL  string) (string, error) {
+func (u *URLUsecase) Shorten(ctx context.Context, originalURL string) (string, error) {
 	code, err := u.generateUniqueCode(ctx)
 	if err != nil {
 		return "", err
 	}
 
+	// Default TTL: 30 days from creation
+	expiresAt := time.Now().Add(30 * 24 * time.Hour)
+
 	url := &domain.ShortURL{
 		OriginalURL: originalURL,
-		ShortCode: code,
-		VisitCount: 0,
+		ShortCode:   code,
+		VisitCount:  0,
+		ExpiresAt:   &expiresAt,
 	}
 
-	err = u.repo.Create(ctx, url)
-	if err != nil{
+	if err := u.repo.Create(ctx, url); err != nil {
 		return "", err
 	}
 
@@ -47,38 +51,58 @@ func (u *URLUsecase) Shorten(ctx context.Context, originalURL  string) (string, 
 }
 
 func (u *URLUsecase) Resolve(ctx context.Context, code string) (string, error) {
-    var longURL string
-    var err error
+	var longURL string
+	var err error
 
-    // 1. Try Cache
-    longURL, err = u.cache.Get(ctx, code).Result()
+	// 1. Try Cache
+	longURL, err = u.cache.Get(ctx, code).Result()
 
-    // 2. If Cache Miss -> Get from DB and Save to Cache
-    if err != nil {
-        url, dbErr := u.repo.GetByCode(ctx, code)
-        if dbErr != nil {
-            return "", dbErr // URL doesn't exist
-        }
-        longURL = url.OriginalURL
-        
-        // Backfill the cache so the next person gets a Hit
-        u.cache.Set(ctx, code, longURL, 24*time.Hour)
-    }
+	// 2. If Cache Miss -> Get from DB and Save to Cache (respecting expiry)
+	if err != nil {
+		url, dbErr := u.repo.GetByCode(ctx, code)
+		if dbErr != nil {
+			return "", dbErr // URL doesn't exist
+		}
 
-    // 3. Increment the counter synchronously
-    // This happens for BOTH Cache Hits and Cache Misses.
-    if err := u.repo.IncrementVisit(ctx, code); err != nil {
-        // We log the error but still return the URL so the user 
-        // isn't blocked just because analytics failed.
-        log.Printf("Failed to increment visit for %s: %v", code, err)
-    }
+		// If expired, delete and treat as not found
+		if url.ExpiresAt != nil && url.ExpiresAt.Before(time.Now()) {
+			if delErr := u.repo.Delete(ctx, code); delErr != nil {
+				log.Printf("failed to delete expired url %s: %v", code, delErr)
+			}
+			return "", errors.New("url expired")
+		}
 
-    return longURL, nil
+		longURL = url.OriginalURL
+
+		// Backfill the cache so the next person gets a Hit
+		u.cache.Set(ctx, code, longURL, 24*time.Hour)
+	}
+
+	// 3. Increment the counter synchronously
+	// This happens for BOTH Cache Hits and Cache Misses.
+	if err := u.repo.IncrementVisit(ctx, code); err != nil {
+		// We log the error but still return the URL so the user
+		// isn't blocked just because analytics failed.
+		log.Printf("Failed to increment visit for %s: %v", code, err)
+	}
+
+	return longURL, nil
 }
 
 func (u *URLUsecase) GetStats(ctx context.Context, code string) (*domain.ShortURL, error) {
-	return u.repo.GetByCode(ctx, code)
-	
+	url, err := u.repo.GetByCode(ctx, code)
+	if err != nil {
+		return nil, err
+	}
+
+	if url.ExpiresAt != nil && url.ExpiresAt.Before(time.Now()) {
+		if delErr := u.repo.Delete(ctx, code); delErr != nil {
+			log.Printf("failed to delete expired url %s when fetching stats: %v", code, delErr)
+		}
+		return nil, errors.New("url expired")
+	}
+
+	return url, nil
 }
 
 func (u *URLUsecase) generateUniqueCode(ctx context.Context) (string, error) {

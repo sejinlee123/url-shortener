@@ -7,19 +7,18 @@ import (
 )
 
 func SetupRouter(urlH *handler.URLHandler, sysH *handler.SystemHandler, frontendURL string) *gin.Engine {
-    r := gin.Default()
+	r := gin.Default()
 
-    // 1. Global CORS - This handles OPTIONS requests automatically
-    r.Use(middleware.SetupCORS(frontendURL))
-    //r.Use(cors.Default())
+	// 1. Global CORS - This handles OPTIONS requests automatically
+	r.Use(middleware.SetupCORS(frontendURL))
 
-    // 2. Grouped Routes
+	// 2. Routes
+	r.POST("/api/shorten", middleware.RateLimitShorten(), urlH.ShortenURL)
+	r.GET("/api/stats/:code", urlH.GetStats)
+	r.GET("/api/:code", urlH.ResolveURL)
+	r.GET("/api/health", sysH.HealthCheck)
+	r.GET("/r/:code", urlH.ResolveURL)
+	r.GET("/:code", urlH.ResolveURL) // API Gateway root redirect (e.g. https://api.../abc123)
 
-    r.POST("/api/shorten", urlH.ShortenURL)
-    r.GET("/api/stats/:code", urlH.GetStats)
-    r.GET("/api/:code", urlH.ResolveURL)
-    r.GET("/api/health", sysH.HealthCheck)
-    r.GET("/r/:code", urlH.ResolveURL)
-    r.GET("/:code", urlH.ResolveURL) // API Gateway root redirect (e.g. https://api.../abc123)
-    return r
+	return r
 }
