@@ -9,7 +9,7 @@
   resource "aws_cloudfront_distribution" "website_cdn" {
     enabled             = true
     price_class         = "PriceClass_100"
-    aliases             = ["urlshortenerfree.xyz"]
+    aliases             = ["urlshortenerfree.xyz", "www.urlshortenerfree.xyz"]
 
     # S3 bucket: frontend static assets
     origin {

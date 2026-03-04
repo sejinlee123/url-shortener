@@ -6,4 +6,4 @@ created_by  = "Sejin"
 db_name     = "url_shortener"
 db_user     = "postgres"
 
-frontend_url = "https://d2wderrm020d2d.cloudfront.net"
+frontend_url = "https://urlshortenerfree.xyz"
