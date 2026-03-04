@@ -6,6 +6,7 @@ import Layout from "../components/Layout";
 import {shortenUrl} from "../api/client";
 
 const HISTORY_KEY = "url_shortener_history";
+const CONSENT_KEY = "url_shortener_consent";
 
 type SavedLink = {
   code: string;
@@ -32,6 +33,7 @@ export default function Home() {
   const [shortUrl, setShortUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [hasHistory, setHasHistory] = useState(false);
+  const [hasConsented, setHasConsented] = useState(false);
 
   useEffect(() => {
     try {
@@ -41,6 +43,13 @@ export default function Home() {
       if (Array.isArray(parsed) && parsed.length > 0) {
         setHasHistory(true);
       }
+    } catch {
+      // ignore
+    }
+
+    try {
+      const consentRaw = localStorage.getItem(CONSENT_KEY);
+      setHasConsented(consentRaw === "true");
     } catch {
       // ignore
     }
@@ -68,7 +77,7 @@ export default function Home() {
         const updated = [
           newEntry,
           ...(Array.isArray(existing) ? existing : []),
-        ].slice(0, 10);
+        ].slice(0, 5);
         localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
       } catch {
         // ignore
@@ -118,16 +127,58 @@ export default function Home() {
         <form onSubmit={handleSubmit} className="relative group">
           <div className="absolute -inset-1 bg-linear-to-r from-[#bb9457] to-[#6f1d1b] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
           <div className="relative flex flex-col sm:flex-row gap-3 bg-[#ffe6a7] p-2 rounded-2xl border border-[#bb9457] shadow-xl">
-            <input
-              type="url"
-              required
-              placeholder="https://very-long-destination.com/path"
-              className="flex-1 px-4 py-3 text-[#432818] placeholder-[#99582a]/70 bg-transparent focus:outline-none"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
+            <div className="flex-1 flex flex-col gap-2">
+              <input
+                type="url"
+                required
+                placeholder="https://very-long-destination.com/path"
+                className="w-full px-4 py-3 text-[#432818] placeholder-[#99582a]/70 bg-transparent focus:outline-none"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
+              <label className="flex items-start gap-2 text-xs text-[#432818]">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 accent-[#6f1d1b]"
+                  checked={hasConsented}
+                  onChange={(e) => {
+                    const next = e.target.checked;
+                    setHasConsented(next);
+                    try {
+                      localStorage.setItem(CONSENT_KEY, next ? "true" : "false");
+                    } catch {
+                      // ignore
+                    }
+                  }}
+                />
+                <span>
+                  I agree to the{" "}
+                  <Link
+                    to="/app/terms"
+                    className="underline text-[#6f1d1b] hover:text-[#432818]"
+                  >
+                    Terms of Service
+                  </Link>
+                  ,{" "}
+                  <Link
+                    to="/app/privacy-policy"
+                    className="underline text-[#6f1d1b] hover:text-[#432818]"
+                  >
+                    Privacy Policy
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    to="/app/cookies-policy"
+                    className="underline text-[#6f1d1b] hover:text-[#432818]"
+                  >
+                    Cookies Policy
+                  </Link>
+                  .
+                </span>
+              </label>
+            </div>
             <button
-              disabled={loading}
+              disabled={loading || !hasConsented}
               className="bg-[#6f1d1b] hover:bg-[#432818] text-[#ffe6a7] font-semibold px-8 py-3 rounded-xl transition-all flex items-center justify-center gap-2"
             >
               {loading ? (

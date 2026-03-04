@@ -8,13 +8,15 @@ import (
 )
 
 type rateLimiter struct {
-	mu        sync.Mutex
-	requests  map[string][]time.Time
-	limit     int
-	window    time.Duration
+	mu       sync.Mutex
+	requests map[string][]time.Time
+	limit    int
+	window   time.Duration
 }
 
-var requests_per_IP_per_minute = 10
+// Max number of shorten requests per IP in the window.
+// Kept deliberately small since this is a hobby project.
+const requestsPerIPPerMinute = 5
 func newRateLimiter(limit int, window time.Duration) *rateLimiter {
 	return &rateLimiter{
 		requests: make(map[string][]time.Time),
@@ -49,7 +51,7 @@ func (r *rateLimiter) allow(key string) bool {
 	return true
 }
 
-var shortenLimiter = newRateLimiter(requests_per_IP_per_minute, time.Minute)
+var shortenLimiter = newRateLimiter(requestsPerIPPerMinute, time.Minute)
 
 func RateLimitShorten() gin.HandlerFunc {
 	return func(c *gin.Context) {

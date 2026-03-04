@@ -47,10 +47,10 @@ export default function RedirectHandler() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#ffe6a7]">
       <Loader2 className="w-12 h-12 text-[#6f1d1b] animate-spin mb-4" />
       <h2 className="text-xl font-semibold text-[#432818]">
-        Redirecting you...
+        You are being redirected to the page
       </h2>
-      <p className="text-[#99582a]">
-        Hold tight, we're taking you to your destination.
+      <p className="text-[#99582a] mt-1">
+        Hold tight, we&apos;re taking you to your destination.
       </p>
     </div>
   );

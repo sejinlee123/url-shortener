@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {ArrowLeft, ExternalLink, BarChart3} from "lucide-react";
+import {ArrowLeft, Copy, BarChart3, Trash2} from "lucide-react";
 import Layout from "../components/Layout";
 
 const HISTORY_KEY = "url_shortener_history";
@@ -11,6 +11,28 @@ type SavedLink = {
   longUrl: string;
   createdAt: string;
 };
+
+/** Temporary dummy data when no history exists — remove or gate behind dev flag when done. */
+const DUMMY_LINKS: SavedLink[] = [
+  {
+    code: "a1b2c3d4",
+    shortUrl: "https://example.com/r/a1b2c3d4",
+    longUrl: "https://github.com/your-username/your-repo",
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    code: "e5f6g7h8",
+    shortUrl: "https://example.com/r/e5f6g7h8",
+    longUrl: "https://docs.example.com/very/long/path/to/documentation",
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    code: "i9j0k1l2",
+    shortUrl: "https://example.com/r/i9j0k1l2",
+    longUrl: "https://stackoverflow.com/questions/12345/sample-question",
+    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+  },
+];
 
 export default function Dashboard() {
   const [links, setLinks] = useState<SavedLink[]>([]);
@@ -32,16 +54,21 @@ export default function Dashboard() {
     syncAndSet(next);
   };
 
+  const handleCopy = (shortUrl: string) => {
+    navigator.clipboard.writeText(shortUrl);
+  };
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        setLinks(parsed.slice(0, 10));
+      const parsed = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setLinks(parsed.slice(0, 5));
+      } else {
+        setLinks(DUMMY_LINKS);
       }
     } catch {
-      // ignore
+      setLinks(DUMMY_LINKS);
     }
   }, []);
 
@@ -76,7 +103,7 @@ export default function Dashboard() {
               Your recent links
             </h1>
             <p className="text-sm text-[#99582a] mt-1">
-              Showing up to your last 10 shortened URLs.
+              Showing up to your last 5 shortened URLs.
             </p>
           </div>
           <button
@@ -91,45 +118,53 @@ export default function Dashboard() {
           {links.map((link) => (
             <div
               key={link.code + link.createdAt}
-              className="bg-[#ffe6a7] border border-[#bb9457] rounded-2xl p-4 shadow-sm"
+              className="bg-[#ffe6a7] border border-[#bb9457] rounded-2xl p-4 shadow-sm space-y-3"
             >
-              <div className="flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-[#99582a] mb-1">
-                    Short URL
-                  </p>
-                  <a
-                    href={link.shortUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-mono font-semibold text-[#6f1d1b] break-all flex items-center hover:text-[#432818] transition-colors"
-                  >
-                    {link.shortUrl}
-                    <ExternalLink size={14} className="ml-1" />
-                  </a>
-                  <p className="text-xs text-[#99582a] mt-2 break-all">
-                    Destination: {link.longUrl}
-                  </p>
-                </div>
-                <div className="flex flex-col items-end gap-2 shrink-0">
-                  <Link
-                    to={`/stats/${link.code}`}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#6f1d1b] hover:text-[#432818] transition-colors"
-                  >
-                    <BarChart3 size={14} />
-                    View stats
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(link.code, link.createdAt)}
-                    className="text-[11px] font-semibold text-[#6f1d1b] hover:text-[#432818] underline"
-                  >
-                    Delete
-                  </button>
-                  <span className="text-[10px] text-[#99582a]">
-                    {new Date(link.createdAt).toLocaleString()}
-                  </span>
-                </div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#99582a]">
+                Shortened
+              </p>
+              <p className="text-sm font-mono font-semibold text-[#6f1d1b] break-all">
+                {link.shortUrl}
+              </p>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleCopy(link.shortUrl)}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#6f1d1b] hover:text-[#432818] bg-white/80 hover:bg-white px-2.5 py-1.5 rounded-lg border border-[#bb9457] transition-colors"
+                >
+                  <Copy size={14} />
+                  Copy
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(link.code, link.createdAt)}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#6f1d1b] hover:text-[#432818] bg-white/80 hover:bg-white px-2.5 py-1.5 rounded-lg border border-[#bb9457] transition-colors"
+                >
+                  <Trash2 size={14} />
+                  Delete
+                </button>
+                <Link
+                  to={`/stats/${link.code}`}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#6f1d1b] hover:text-[#432818] bg-white/80 hover:bg-white px-2.5 py-1.5 rounded-lg border border-[#bb9457] transition-colors"
+                >
+                  <BarChart3 size={14} />
+                  Stats
+                </Link>
               </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#99582a] mb-0.5">
+                  Original
+                </p>
+                <p className="text-sm text-[#432818] break-all">
+                  {link.longUrl}
+                </p>
+              </div>
+
+              <span className="text-[10px] text-[#99582a] block">
+                {new Date(link.createdAt).toLocaleString()}
+              </span>
             </div>
           ))}
         </div>
