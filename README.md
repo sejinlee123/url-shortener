@@ -8,7 +8,7 @@ A simple URL shortener: paste a long link, get a short one, and optionally view 
 
 ## What it does
 
-- **Shorten** – Enter a URL and get a short link (e.g. `https://urlshortenerfree.xy/r/abc12345`).
+- **Shorten** – Enter a URL and get a short link (e.g. `https://urlshortenerfree.xyz/r/abc12345`).
 - **Redirect** – Visiting a short link sends you to the original URL.
 - **Dashboard** – See your last 5 shortened links (stored in browser local storage).
 - **Stats** – View click count and destination for a short code.

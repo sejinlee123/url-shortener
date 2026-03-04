@@ -13,17 +13,6 @@ export default function Contact() {
         </p>
         <ul className="space-y-2 text-sm text-[#432818]">
           <li>
-            GitHub:{" "}
-            <a
-              href="https://github.com/sejinlee123/Url_Shortener_Fun"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#6f1d1b] hover:text-[#432818] underline"
-            >
-              github.com/sejinlee123/Url_Shortener_Fun
-            </a>
-          </li>
-          <li>
             Email:{" "}
             <a
               href="mailto:lshredder45@gmail.com"

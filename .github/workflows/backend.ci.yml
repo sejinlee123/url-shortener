@@ -91,13 +91,8 @@ jobs:
         id: get-url
         working-directory: ./terraform
         run: |
-          # Use the output from the previous job if available; otherwise, fetch from state.
-          if [ -n "${{ needs.terraform-and-backend.outputs.api_url }}" ]; then
-            echo "URL=${{ needs.terraform-and-backend.outputs.api_url }}" >> $GITHUB_OUTPUT
-          else
-            terraform init
-            echo "URL=$(terraform output -raw api_url)" >> $GITHUB_OUTPUT
-          fi
+          # Use custom domain so the built frontend calls https://urlshortenerfree.xyz/api/...
+          echo "URL=https://urlshortenerfree.xyz" >> $GITHUB_OUTPUT
 
       - name: Setup Node
         uses: actions/setup-node@v4

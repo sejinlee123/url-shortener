@@ -1,6 +1,9 @@
 provider "aws" {
-  region  = var.aws_region
+  region = var.aws_region
 }
+
+# Required to build ACM certificate ARN (cert must be in us-east-1 for CloudFront)
+data "aws_caller_identity" "current" {}
 
 resource "null_resource" "invalidate_cache" {
   triggers = {

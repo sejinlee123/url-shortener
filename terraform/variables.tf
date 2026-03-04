@@ -44,5 +44,11 @@ variable "db_password" {
 variable "frontend_url" {
   type        = string
   default     = "https://placeholder.cloudfront.net"
-  description = "Full URL of the frontend (e.g. https://your-distribution.cloudfront.net). Used for API Gateway CORS and Lambda FRONTEND_URL. After first apply, run 'terraform output cloudfront_domain' and set this to https://<that-value>, then apply again."
+  description = "Full URL of the frontend (e.g. https://urlshortenerfree.xyz). Used for API Gateway CORS and Lambda FRONTEND_URL."
+}
+
+variable "acm_certificate_id" {
+  type        = string
+  default     = "65728b60-4f66-42e6-be8b-62048d1dbbdc"
+  description = "ACM certificate ID in us-east-1 for urlshortenerfree.xyz. Certificate must be in us-east-1 for CloudFront."
 }
