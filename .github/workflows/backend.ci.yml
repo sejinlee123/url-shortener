@@ -27,13 +27,17 @@ jobs:
       github.event.inputs.deploy_target == 'all' || 
       github.event.inputs.deploy_target == 'backend_only'
     runs-on: ubuntu-latest
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_REGION: us-east-2
-      TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+    outputs:
+      api_url: ${{ steps.tf-apply.outputs.API_URL }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
 
       - name: Setup Go
         uses: actions/setup-go@v4
@@ -56,23 +60,27 @@ jobs:
         working-directory: ./terraform
         run: |
           terraform init
-          terraform apply -auto-approve -var-file="dev.tfvars"
+          terraform apply -auto-approve -var-file="dev.tfvars" -var="db_password=${{ secrets.DB_PASSWORD }}"
           echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_OUTPUT
-
-    outputs:
-      api_url: ${{ steps.tf-apply.outputs.API_URL }}
 
   frontend-deploy:
     name: Build and Deploy Frontend
     needs: terraform-and-backend
     if: |
-      always() && 
+      always() && !failure() && !cancelled() &&
       (github.event_name == 'push' || 
        github.event.inputs.deploy_target == 'all' || 
        github.event.inputs.deploy_target == 'frontend_only')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -82,14 +90,9 @@ jobs:
       - name: Get API URL
         id: get-url
         working-directory: ./terraform
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-2
         run: |
-          # Use the output from the backend job if available; 
-          # otherwise, fetch it directly from existing Terraform state.
-          if [ "${{ needs.terraform-and-backend.outputs.api_url }}" != "" ]; then
+          # Use the output from the previous job if available; otherwise, fetch from state.
+          if [ -n "${{ needs.terraform-and-backend.outputs.api_url }}" ]; then
             echo "URL=${{ needs.terraform-and-backend.outputs.api_url }}" >> $GITHUB_OUTPUT
           else
             terraform init
@@ -110,8 +113,5 @@ jobs:
           npm run build
 
       - name: Sync to S3
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           aws s3 sync ./url_shortener/dist s3://url-shortener-s3-bucket-sejinlee123 --delete

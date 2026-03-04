@@ -42,11 +42,10 @@ export default function Home() {
         setHasHistory(true);
       }
     } catch {
-      // ignore parse issues
+      // ignore
     }
   }, []);
 
-  // Using SyntheticEvent<HTMLFormElement> to resolve the deprecation warning
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -72,7 +71,7 @@ export default function Home() {
         ].slice(0, 10);
         localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
       } catch {
-        // ignore storage errors
+        // ignore
       }
 
       setUrl("");

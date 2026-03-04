@@ -1,8 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
 
 if (!API_BASE_URL) {
-  // In production we expect this to be set via environment.
-  // Leaving this as a runtime error makes configuration issues obvious.
   console.error("VITE_API_URL is not set; API calls will fail.");
 }
 
@@ -45,4 +43,3 @@ export async function fetchStats(code: string): Promise<StatsResponse> {
 export function buildRedirectUrl(code: string): string {
   return `${API_BASE_URL}/api/${code}`;
 }
-

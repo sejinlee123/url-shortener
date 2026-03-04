@@ -13,7 +13,6 @@ export default function RedirectHandler() {
       return;
     }
 
-    // Safely handles both string returns and Promises if it's an API call
     Promise.resolve(buildRedirectUrl(code))
       .then((url) => {
         if (!url) {

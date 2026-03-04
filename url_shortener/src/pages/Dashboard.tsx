@@ -21,7 +21,7 @@ export default function Dashboard() {
     try {
       localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
     } catch {
-      // ignore storage errors
+      // ignore
     }
   };
 
@@ -41,7 +41,7 @@ export default function Dashboard() {
         setLinks(parsed.slice(0, 10));
       }
     } catch {
-      // ignore parse errors
+      // ignore
     }
   }, []);
 

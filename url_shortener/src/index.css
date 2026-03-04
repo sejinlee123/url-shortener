@@ -1,6 +1,4 @@
-@import "tailwindcss"; /* Or @tailwind base; @tailwind components; @tailwind utilities; depending on your version */
-
-/* Add these to ensure the html and body allow centering */
+@import "tailwindcss";
 html,
 body,
 #root {
