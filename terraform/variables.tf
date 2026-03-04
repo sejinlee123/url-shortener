@@ -25,10 +25,6 @@ variable "object_ownership" {
   type        = string
 }
 
-variable "frontend_url" {
-  type        = string
-  description = "The allowed origin for CORS"
-}
 
 # --- Database Variables ---
 variable "db_user" { 
