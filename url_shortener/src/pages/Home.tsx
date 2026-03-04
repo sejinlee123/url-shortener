@@ -117,7 +117,7 @@ export default function Home() {
 
       {!shortUrl ? (
         <form onSubmit={handleSubmit} className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-[#bb9457] to-[#6f1d1b] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+          <div className="absolute -inset-1 bg-linear-to-r from-[#bb9457] to-[#6f1d1b] rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
           <div className="relative flex flex-col sm:flex-row gap-3 bg-[#ffe6a7] p-2 rounded-2xl border border-[#bb9457] shadow-xl">
             <input
               type="url"
