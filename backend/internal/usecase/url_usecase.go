@@ -10,6 +10,7 @@ import (
 	"github.com/sejinlee123/Url_Shortener_Fun/backend/internal/domain"
 	"github.com/sejinlee123/Url_Shortener_Fun/backend/internal/pkg/generator"
 )
+var shortened_url_expiration_date_days = 7
 
 type URLUsecase struct{
 	repo domain.ShortURLRepository
@@ -33,8 +34,8 @@ func (u *URLUsecase) Shorten(ctx context.Context, originalURL string) (string, e
 		return "", err
 	}
 
-	// Default TTL: 7 days from creation (extended on each visit)
-	expiresAt := time.Now().Add(7 * 24 * time.Hour)
+
+	expiresAt := time.Now().Add(time.Duration(shortened_url_expiration_date_days) * 24 * time.Hour)
 
 	url := &domain.ShortURL{
 		OriginalURL: originalURL,
@@ -54,14 +55,14 @@ func (u *URLUsecase) Resolve(ctx context.Context, code string) (string, error) {
 	var longURL string
 	var err error
 
-	// 1. Try Cache
+	// Try Cache
 	longURL, err = u.cache.Get(ctx, code).Result()
 
-	// 2. If Cache Miss -> Get from DB and Save to Cache (respecting expiry)
+	// Cache Miss -> Get from DB and Save to Cache 
 	if err != nil {
 		url, dbErr := u.repo.GetByCode(ctx, code)
 		if dbErr != nil {
-			return "", dbErr // URL doesn't exist
+			return "", dbErr 
 		}
 
 		// If expired, delete and treat as not found
@@ -72,7 +73,7 @@ func (u *URLUsecase) Resolve(ctx context.Context, code string) (string, error) {
 			return "", errors.New("url expired")
 		}
 
-		// Extend expiry on successful resolve (keeps active links alive)
+		// Keeps active links alive
 		newExpiry := time.Now().Add(7 * 24 * time.Hour)
 		url.ExpiresAt = &newExpiry
 		if updErr := u.repo.Update(ctx, url); updErr != nil {
@@ -81,15 +82,11 @@ func (u *URLUsecase) Resolve(ctx context.Context, code string) (string, error) {
 
 		longURL = url.OriginalURL
 
-		// Backfill the cache so the next person gets a Hit
 		u.cache.Set(ctx, code, longURL, 24*time.Hour)
 	}
 
-	// 3. Increment the counter synchronously
-	// This happens for BOTH Cache Hits and Cache Misses.
+
 	if err := u.repo.IncrementVisit(ctx, code); err != nil {
-		// We log the error but still return the URL so the user
-		// isn't blocked just because analytics failed.
 		log.Printf("Failed to increment visit for %s: %v", code, err)
 	}
 

@@ -7,7 +7,7 @@ import (
 
 const (
     ShortCodeLength = 8
-	MaxShortCodeLength = 32 // UUIDs without hyphens are exactly 32
+	MaxShortCodeLength = 32 // UUIDs without hyphens
 )
 
 type ShortURL struct {
@@ -19,7 +19,7 @@ type ShortURL struct {
     UpdatedAt   time.Time  `gorm:"column:updated_at" json:"updated_at"`
     ExpiresAt   *time.Time `gorm:"column:expires_at" json:"expires_at,omitempty"`
 }
-//The raw bone commands that directly interface with the DB
+
 type ShortURLRepository interface{
 
 	Create(ctx context.Context, url *ShortURL) error

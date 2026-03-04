@@ -11,7 +11,6 @@ resource "aws_lambda_function" "api" {
   function_name = "url-shortener-api"
   role          = aws_iam_role.lambda_exec.arn
   
-  # For Go on AL2023, handler is always 'bootstrap'
   handler       = "bootstrap"
   runtime       = "provided.al2023"
   architectures = ["arm64"]

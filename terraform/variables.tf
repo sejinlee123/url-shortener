@@ -26,7 +26,7 @@ variable "object_ownership" {
 }
 
 
-# --- Database Variables ---
+# Database Variables
 variable "db_user" { 
   type = string 
 }

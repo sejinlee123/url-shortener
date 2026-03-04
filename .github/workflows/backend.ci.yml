@@ -65,7 +65,6 @@ jobs:
   frontend-deploy:
     name: Build and Deploy Frontend
     needs: terraform-and-backend
-    # always() ensures this runs even if the backend job was skipped via the 'if' condition
     if: |
       always() && 
       (github.event_name == 'push' || 
@@ -115,5 +114,4 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          # Ensure this path matches where your npm run build puts files (usually /dist)
           aws s3 sync ./url_shortener/dist s3://url-shortener-s3-bucket-sejinlee123 --delete

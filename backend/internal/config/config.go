@@ -15,10 +15,10 @@ type Config struct {
 	FrontendURL string
 }
 
-// Load gathers all environment variables into a single struct
+
 func Load() *Config {
     return &Config{
-        DBHost:      getEnv("DB_HOST", ""), // Leave empty to force failure if missing
+        DBHost:      getEnv("DB_HOST", ""), 
         DBUser:      getEnv("DB_USER", ""),
         DBPass:      getEnv("DB_PASSWORD", ""),
         DBName:      getEnv("DB_NAME", ""),

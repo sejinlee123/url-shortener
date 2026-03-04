@@ -14,7 +14,7 @@ type rateLimiter struct {
 	window    time.Duration
 }
 
-// newRateLimiter creates a simple in-memory rate limiter.
+var requests_per_IP_per_minute = 10
 func newRateLimiter(limit int, window time.Duration) *rateLimiter {
 	return &rateLimiter{
 		requests: make(map[string][]time.Time),
@@ -31,7 +31,6 @@ func (r *rateLimiter) allow(key string) bool {
 	defer r.mu.Unlock()
 
 	times := r.requests[key]
-	// Drop entries outside the window
 	n := 0
 	for _, t := range times {
 		if t.After(cutoff) {
@@ -50,9 +49,8 @@ func (r *rateLimiter) allow(key string) bool {
 	return true
 }
 
-var shortenLimiter = newRateLimiter(10, time.Minute)
+var shortenLimiter = newRateLimiter(requests_per_IP_per_minute, time.Minute)
 
-// RateLimitShorten limits POST /api/shorten to 10 requests per IP per minute.
 func RateLimitShorten() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ip := c.ClientIP()

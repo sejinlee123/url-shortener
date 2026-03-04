@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"os"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -47,20 +44,15 @@ func main() {
     // Create the Gin Engine
     r := router.SetupRouter(h, sysH, cfg.FrontendURL)
 
-    // Check if we are running in the AWS Lambda environment
-    if os.Getenv("AWS_LAMBDA_FUNCTION_NAME") != "" {
-        // Use the adapter for Lambda
-        ginLambda = ginadapter.NewV2(r)
-        lambda.Start(Handler)
-    } else {
-        // Run as a normal web server for local development
-        r.Run(":" + cfg.AppPort)
-    }
+
+    ginLambda = ginadapter.NewV2(r)
+    lambda.Start(Handler)
+
 }
 
 // Handler converts the API Gateway V2 Event to a Gin Request and back
 func Handler(ctx context.Context, req events.APIGatewayV2HTTPRequest) (events.APIGatewayV2HTTPResponse, error) {
-    eventJSON, _ := json.Marshal(req)
-    fmt.Printf("DEBUG: FULL EVENT PAYLOAD: %s\n", string(eventJSON))
+    //eventJSON, _ := json.Marshal(req)
+    //fmt.Printf("DEBUG: FULL EVENT PAYLOAD: %s\n", string(eventJSON))
     return ginLambda.ProxyWithContext(ctx, req)
 }
