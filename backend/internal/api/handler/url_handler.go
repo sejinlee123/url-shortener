@@ -24,15 +24,7 @@ func NewURLHandler(u domain.ShortURLUsecase) *URLHandler {
 	return &URLHandler{usecase: u}
 }
 
-// ShortenURL godoc
-// @Summary      Create a short URL
-// @Tags         URLs
-// @Accept       json
-// @Produce      json
-// @Param        request  body      ShortenRequest  true  "Long URL to shorten"
-// @Success      201      {object}  ShortenResponse
-// @Failure      400      {object}  map[string]string
-// @Router       /shorten [post]
+
 func (h *URLHandler) ShortenURL(c *gin.Context) {
 	FRONTEND_URL := os.Getenv("FRONTEND_URL")
 	var req ShortenRequest
@@ -47,22 +39,10 @@ func (h *URLHandler) ShortenURL(c *gin.Context) {
 		return
 	}
 
-	fullShortURL := FRONTEND_URL + "/r" + shortCode
+	fullShortURL := FRONTEND_URL + "/r/" + shortCode
 	c.JSON(http.StatusCreated, ShortenResponse{ShortURL: fullShortURL})
 }
 
-// ResolveURL godoc
-// @Summary      Resolve and Redirect
-// @Description  Takes a short code, increments the visit count in the background, and redirects the user to the original destination URL.
-// @Tags         URLs
-// @Accept       json
-// @Produce      json
-// @Param        code  path      string  true  "The 8-character unique short code (e.g., a4fee6e7)"
-// @Success      301   {string}  string  "Redirecting to the original URL..."
-// @Header       301   {string}  Location "The destination URL"
-// @Failure      404   {object}  map[string]string "Error: The short link does not exist"
-// @Failure      500   {object}  map[string]string "Internal server error"
-// @Router       /{code} [get]
 func (h *URLHandler) ResolveURL(c *gin.Context) {
 	code := c.Param("code")
 
