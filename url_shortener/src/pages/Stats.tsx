@@ -34,10 +34,10 @@ export default function Stats() {
   return (
     <Layout>
       <Link
-        to="/"
+        to="/dashboard"
         className="inline-flex items-center text-sm font-medium text-[#99582a] hover:text-[#6f1d1b] transition-colors mb-6"
       >
-        <ArrowLeft size={16} className="mr-1" /> New Link
+        <ArrowLeft size={16} className="mr-1" /> Dashboard
       </Link>
 
       <div className="bg-white rounded-3xl border border-[#bb9457] shadow-2xl overflow-hidden">
