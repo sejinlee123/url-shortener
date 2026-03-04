@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import type {SyntheticEvent} from "react";
 import {useNavigate, Link} from "react-router-dom";
 import {Link2, Sparkles, Copy, Check} from "lucide-react";
 import Layout from "../components/Layout";
@@ -32,7 +33,6 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [hasHistory, setHasHistory] = useState(false);
 
-  // Detect existing history (but keep landing page visible)
   useEffect(() => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
@@ -46,7 +46,8 @@ export default function Home() {
     }
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Using SyntheticEvent<HTMLFormElement> to resolve the deprecation warning
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
@@ -55,7 +56,6 @@ export default function Home() {
 
       setShortUrl(data.short_url);
 
-      // Update local history (keep latest 10)
       const newEntry: SavedLink = {
         code: extractCode(data.short_url),
         shortUrl: data.short_url,
@@ -66,7 +66,10 @@ export default function Home() {
       try {
         const raw = localStorage.getItem(HISTORY_KEY);
         const existing: SavedLink[] = raw ? JSON.parse(raw) : [];
-        const updated = [newEntry, ...(Array.isArray(existing) ? existing : [])].slice(0, 10);
+        const updated = [
+          newEntry,
+          ...(Array.isArray(existing) ? existing : []),
+        ].slice(0, 10);
         localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
       } catch {
         // ignore storage errors

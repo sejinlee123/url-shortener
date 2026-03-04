@@ -101,6 +101,7 @@ export default function Dashboard() {
                   <a
                     href={link.shortUrl}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm font-mono font-semibold text-[#6f1d1b] break-all flex items-center hover:text-[#432818] transition-colors"
                   >
                     {link.shortUrl}
@@ -136,4 +137,3 @@ export default function Dashboard() {
     </Layout>
   );
 }
-

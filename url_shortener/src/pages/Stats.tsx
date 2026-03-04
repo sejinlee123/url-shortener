@@ -13,9 +13,7 @@ export default function Stats() {
 
   useEffect(() => {
     if (!code) return;
-    fetchStats(code)
-      .then(setStats)
-      .catch(console.error);
+    fetchStats(code).then(setStats).catch(console.error);
   }, [code]);
 
   const handleCopy = () => {
@@ -80,6 +78,7 @@ export default function Stats() {
             <a
               href={stats.original_url}
               target="_blank"
+              rel="noopener noreferrer"
               className="text-[#432818] font-semibold break-all flex items-center hover:text-[#6f1d1b] transition-colors"
             >
               Link <ExternalLink size={14} className="ml-1" />

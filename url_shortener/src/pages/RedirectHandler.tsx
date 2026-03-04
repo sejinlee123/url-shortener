@@ -12,12 +12,17 @@ export default function RedirectHandler() {
       setError(true);
       return;
     }
-    const url = buildRedirectUrl(code);
-    if (!url) {
-      setError(true);
-      return;
-    }
-    window.location.replace(url);
+
+    // Safely handles both string returns and Promises if it's an API call
+    Promise.resolve(buildRedirectUrl(code))
+      .then((url) => {
+        if (!url) {
+          setError(true);
+        } else {
+          window.location.replace(url);
+        }
+      })
+      .catch(() => setError(true));
   }, [code]);
 
   if (error) {
@@ -29,7 +34,10 @@ export default function RedirectHandler() {
         <p className="text-[#99582a]">
           We couldn't find the destination for this link.
         </p>
-        <a href="/" className="mt-4 text-[#6f1d1b] underline hover:text-[#432818]">
+        <a
+          href="/"
+          className="mt-4 text-[#6f1d1b] underline hover:text-[#432818]"
+        >
           Go Home
         </a>
       </div>
