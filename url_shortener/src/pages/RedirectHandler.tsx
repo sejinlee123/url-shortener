@@ -7,27 +7,12 @@ export default function RedirectHandler() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    const resolveUrl = async () => {
-      try {
-        // We call your backend resolve endpoint
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/api/${code}`,
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          // The actual jump to the external site
-          window.location.href = data.long_url;
-        } else {
-          setError(true);
-        }
-      } catch (err) {
-        console.error("Resolution failed", err);
-        setError(true);
-      }
-    };
-
-    resolveUrl();
+    const API_BASE = import.meta.env.VITE_API_URL ?? "";
+    if (!code || !API_BASE) {
+      setError(true);
+      return;
+    }
+    window.location.replace(`${API_BASE}/api/${code}`);
   }, [code]);
 
   if (error) {

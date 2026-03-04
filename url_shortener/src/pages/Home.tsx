@@ -12,9 +12,7 @@ export default function Home() {
     e.preventDefault();
     setLoading(true);
 
-    // Use environment variable, fallback to localhost for dev
-    const API_BASE_URL =
-      import.meta.env.VITE_API_URL || "http://localhost:8080";
+    const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/shorten`, {
@@ -68,7 +66,7 @@ export default function Home() {
 
       {!shortUrl ? (
         <form onSubmit={handleSubmit} className="relative group">
-          <div className="absolute -inset-1 bg-linear-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+          <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
           <div className="relative flex flex-col sm:flex-row gap-3 bg-white p-2 rounded-2xl border border-slate-200 shadow-xl">
             <input
               type="url"

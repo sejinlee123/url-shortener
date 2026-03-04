@@ -13,7 +13,7 @@ type ShortenRequest struct {
 }
 
 type ShortenResponse struct {
-	ShortURL string `json:"short_url" example:"http://localhost:8080/a4fee6e7"`
+	ShortURL string `json:"short_url"`
 }
 
 type URLHandler struct {
@@ -53,4 +53,17 @@ func (h *URLHandler) ResolveURL(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusMovedPermanently, longURL)
+}
+
+func (h *URLHandler) GetStats(c *gin.Context) {
+	code := c.Param("code")
+	url, err := h.usecase.GetStats(c.Request.Context(), code)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "The short link does not exist"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"visit_count":  url.VisitCount,
+		"original_url": url.OriginalURL,
+	})
 }

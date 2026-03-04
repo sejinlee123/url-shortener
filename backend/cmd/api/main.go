@@ -10,9 +10,6 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 
-	// Import your generated docs
-	_ "github.com/sejinlee123/Url_Shortener_Fun/backend/docs"
-
 	"github.com/sejinlee123/Url_Shortener_Fun/backend/internal/api/handler"
 	"github.com/sejinlee123/Url_Shortener_Fun/backend/internal/api/router"
 	"github.com/sejinlee123/Url_Shortener_Fun/backend/internal/config"

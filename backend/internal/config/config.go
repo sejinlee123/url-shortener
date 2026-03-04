@@ -27,7 +27,7 @@ func Load() *Config {
         RedisPort:   getEnv("REDIS_PORT", "6379"),
         RedisPass:   getEnv("REDIS_PASSWORD", ""),
         AppPort:     getEnv("APP_PORT", "8080"),
-        FrontendURL: getEnv("FRONTEND_URL", "http://localhost:5173"), // Default for dev
+        FrontendURL: getEnv("FRONTEND_URL", ""),
     }
 }
 

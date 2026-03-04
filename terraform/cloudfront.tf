@@ -18,21 +18,12 @@
     default_root_object = "index.html"
 
     default_cache_behavior {
-      allowed_methods        = ["GET", "HEAD", "DELETE", "OPTIONS", "PATCH", "POST", "PUT"]
+      allowed_methods        = ["GET", "HEAD", "OPTIONS"]
       cached_methods         = ["GET", "HEAD"]
-      min_ttl                = "0"
-      default_ttl            = "300"
-      max_ttl                = "1200"
       target_origin_id       = "origin-bucket-${aws_s3_bucket.deployment_bucket.id}"
       viewer_protocol_policy = "redirect-to-https"
       compress               = true
-
-      forwarded_values {
-        query_string = false
-        cookies {
-          forward = "none"
-        }
-      }
+      cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized managed policy
     }
 
     restrictions {
@@ -45,7 +36,7 @@
       error_caching_min_ttl = 300
       error_code            = 404
       response_code         = "200"
-      response_page_path    = "/404.html"
+      response_page_path    = "/index.html"
     }
 
     viewer_certificate {

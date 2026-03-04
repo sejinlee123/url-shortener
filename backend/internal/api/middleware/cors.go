@@ -8,13 +8,13 @@ import (
 )
 
 func SetupCORS(frontendURL string) gin.HandlerFunc {
-    if frontendURL == "" {
-        frontendURL = "http://localhost:5173"
+    origins := []string{}
+    if frontendURL != "" {
+        origins = []string{frontendURL}
     }
 
     return cors.New(cors.Config{
-        // Add only the origins you trust
-        AllowOrigins:     []string{frontendURL},
+        AllowOrigins:     origins,
         AllowMethods:     []string{"GET", "POST", "OPTIONS", "PUT", "DELETE"},
         AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
         ExposeHeaders:    []string{"Content-Length"},

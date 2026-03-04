@@ -8,12 +8,13 @@ export default function Stats() {
   const [stats, setStats] = useState<any>(null);
   const [copied, setCopied] = useState(false);
 
-  // Replace 5173 with 8080 if your Go backend serves the redirect
-  const shortUrl = `http://localhost:8080/${code}`;
+  const shortUrl = `${window.location.origin}/r/${code}`;
 
   useEffect(() => {
-    fetch(`/api/stats/${code}`)
-      .then((res) => res.json())
+    const apiBase = import.meta.env.VITE_API_URL ?? "";
+    if (!apiBase) return;
+    fetch(`${apiBase}/api/stats/${code}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Not found"))))
       .then(setStats)
       .catch(console.error);
   }, [code]);

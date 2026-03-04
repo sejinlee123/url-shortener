@@ -1,6 +1,7 @@
 variable "aws_profile" {
-  description = "AWS profile name from your local ~/.aws/credentials"
+  description = "AWS profile name from your local ~/.aws/credentials (optional)"
   type        = string
+  default     = ""
 }
 
 variable "aws_region" {
