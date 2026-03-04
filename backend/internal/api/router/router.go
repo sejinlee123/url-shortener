@@ -19,11 +19,6 @@ func SetupRouter(urlH *handler.URLHandler, sysH *handler.SystemHandler, frontend
     r.POST("/api/shorten", urlH.ShortenURL)
     r.GET("/api/:code", urlH.ResolveURL)
     r.GET("/api/health", sysH.HealthCheck)
-    
-
-    // 3. Optional: Redirect root or specific calls to the API group 
-    // instead of duplicating the logic entirely.
-    r.GET("/:code", urlH.ResolveURL) 
-
+    r.GET("/r/:code", urlH.ResolveURL) 
     return r
 }

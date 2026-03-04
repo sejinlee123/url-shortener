@@ -47,7 +47,7 @@ func (h *URLHandler) ShortenURL(c *gin.Context) {
 		return
 	}
 
-	fullShortURL := FRONTEND_URL + shortCode
+	fullShortURL := FRONTEND_URL + "/r" + shortCode
 	c.JSON(http.StatusCreated, ShortenResponse{ShortURL: fullShortURL})
 }
 
