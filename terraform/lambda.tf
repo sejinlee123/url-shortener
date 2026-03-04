@@ -27,7 +27,7 @@ resource "aws_lambda_function" "api" {
       DB_PASSWORD  = var.db_password
       DB_NAME      = var.db_name
       REDIS_HOST   = aws_elasticache_cluster.redis.cache_nodes[0].address
-      FRONTEND_URL = "https://${aws_cloudfront_distribution.website_cdn.domain_name}"
+      FRONTEND_URL = var.frontend_url
     }
   }
 }

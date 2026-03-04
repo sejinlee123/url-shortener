@@ -12,28 +12,6 @@ type SavedLink = {
   createdAt: string;
 };
 
-/** Temporary dummy data when no history exists — remove or gate behind dev flag when done. */
-const DUMMY_LINKS: SavedLink[] = [
-  {
-    code: "a1b2c3d4",
-    shortUrl: "https://example.com/r/a1b2c3d4",
-    longUrl: "https://github.com/your-username/your-repo",
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    code: "e5f6g7h8",
-    shortUrl: "https://example.com/r/e5f6g7h8",
-    longUrl: "https://docs.example.com/very/long/path/to/documentation",
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    code: "i9j0k1l2",
-    shortUrl: "https://example.com/r/i9j0k1l2",
-    longUrl: "https://stackoverflow.com/questions/12345/sample-question",
-    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-  },
-];
-
 export default function Dashboard() {
   const [links, setLinks] = useState<SavedLink[]>([]);
   const navigate = useNavigate();
@@ -61,14 +39,13 @@ export default function Dashboard() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
-      const parsed = raw ? JSON.parse(raw) : [];
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
         setLinks(parsed.slice(0, 5));
-      } else {
-        setLinks(DUMMY_LINKS);
       }
     } catch {
-      setLinks(DUMMY_LINKS);
+      // ignore
     }
   }, []);
 

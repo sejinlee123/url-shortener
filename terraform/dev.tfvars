@@ -5,3 +5,5 @@ created_by  = "Sejin"
 
 db_name     = "url_shortener"
 db_user     = "postgres"
+
+frontend_url = "d2wderrm020d2d.cloudfront.net"
