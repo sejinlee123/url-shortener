@@ -65,12 +65,12 @@ func (u *URLUsecase) Resolve(ctx context.Context, code string) (string, error) {
 			return "", dbErr 
 		}
 
-		// If expired, delete and treat as not found
+		// If expired, delete and treat as expired
 		if url.ExpiresAt != nil && url.ExpiresAt.Before(time.Now()) {
 			if delErr := u.repo.Delete(ctx, code); delErr != nil {
 				log.Printf("failed to delete expired url %s: %v", code, delErr)
 			}
-			return "", errors.New("url expired")
+			return "", domain.ErrURLExpired
 		}
 
 		// Keeps active links alive
@@ -103,14 +103,13 @@ func (u *URLUsecase) GetStats(ctx context.Context, code string) (*domain.ShortUR
 		if delErr := u.repo.Delete(ctx, code); delErr != nil {
 			log.Printf("failed to delete expired url %s when fetching stats: %v", code, delErr)
 		}
-		return nil, errors.New("url expired")
+		return nil, domain.ErrURLExpired
 	}
 
 	return url, nil
 }
 
 func (u *URLUsecase) generateUniqueCode(ctx context.Context) (string, error) {
-    gen := generator.NewShortUrlGenerator(0)
-    return gen.GenerateUniqueCode(ctx, u.repo) 
+    return u.generator.GenerateUniqueCode(ctx, u.repo) 
 }
 

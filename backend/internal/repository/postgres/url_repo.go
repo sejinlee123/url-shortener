@@ -28,8 +28,7 @@ func (r *urlRepository) GetByCode(ctx context.Context, code string) (*domain.Sho
 
     if err != nil {
         if errors.Is(err, gorm.ErrRecordNotFound) {
-            // Return a specific "not found" error so the handler knows to 404
-            return nil, errors.New("url not found") 
+            return nil, domain.ErrURLNotFound 
         }
         return nil, err
     }

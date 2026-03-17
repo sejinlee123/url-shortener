@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
@@ -19,6 +20,11 @@ type ShortURL struct {
     UpdatedAt   time.Time  `gorm:"column:updated_at" json:"updated_at"`
     ExpiresAt   *time.Time `gorm:"column:expires_at" json:"expires_at,omitempty"`
 }
+
+var (
+	ErrURLNotFound = errors.New("url not found")
+	ErrURLExpired  = errors.New("url expired")
+)
 
 type ShortURLRepository interface{
 

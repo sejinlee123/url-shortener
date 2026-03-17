@@ -38,7 +38,7 @@ func main() {
     gen := generator.NewShortUrlGenerator(0)
     uc := usecase.NewURLUsecase(repo, gen, redisClient)
 
-    h := handler.NewURLHandler(uc)
+    h := handler.NewURLHandler(uc, cfg.FrontendURL)
     sysH := handler.NewSystemHandler()
 
     // Create the Gin Engine

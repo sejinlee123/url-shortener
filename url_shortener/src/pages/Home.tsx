@@ -3,7 +3,8 @@ import type {SyntheticEvent} from "react";
 import {useNavigate, Link} from "react-router-dom";
 import {Link2, Sparkles, Copy, Check} from "lucide-react";
 import Layout from "../components/Layout";
-import {shortenUrl} from "../api/client";
+import {apiConfigured, shortenUrl} from "../api/client";
+import {copyToClipboard} from "../utils/clipboard";
 
 const HISTORY_KEY = "url_shortener_history";
 const CONSENT_KEY = "url_shortener_consent";
@@ -34,6 +35,7 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [hasHistory, setHasHistory] = useState(false);
   const [hasConsented, setHasConsented] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -57,6 +59,8 @@ export default function Home() {
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrorMessage(null);
+
     setLoading(true);
 
     try {
@@ -86,16 +90,19 @@ export default function Home() {
       setUrl("");
     } catch (err) {
       console.error(err);
-      alert(`Error: ${err instanceof Error ? err.message : "Unknown error"}`);
+      const message =
+        err instanceof Error ? err.message : "An unknown error occurred";
+      setErrorMessage(message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(shortUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    copyToClipboard(shortUrl).finally(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   return (
@@ -122,6 +129,14 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {(!apiConfigured || errorMessage) && (
+        <div className="mb-6 rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {!apiConfigured
+            ? "The shortening service is not configured. Please try again later."
+            : errorMessage}
+        </div>
+      )}
 
       {!shortUrl ? (
         <form onSubmit={handleSubmit} className="relative group">
@@ -176,9 +191,14 @@ export default function Home() {
                   .
                 </span>
               </label>
+              {!hasConsented && (
+                <p className="text-[11px] text-[#99582a]">
+                  Please accept the terms to enable shortening.
+                </p>
+              )}
             </div>
             <button
-              disabled={loading || !hasConsented}
+              disabled={loading || !hasConsented || !apiConfigured}
               className="bg-[#6f1d1b] hover:bg-[#432818] text-[#ffe6a7] font-semibold px-8 py-3 rounded-xl transition-all flex items-center justify-center gap-2"
             >
               {loading ? (

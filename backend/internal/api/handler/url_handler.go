@@ -1,8 +1,8 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sejinlee123/Url_Shortener_Fun/backend/internal/domain"
@@ -17,19 +17,27 @@ type ShortenResponse struct {
 }
 
 type URLHandler struct {
-	usecase domain.ShortURLUsecase
+	usecase     domain.ShortURLUsecase
+	frontendURL string
 }
 
-func NewURLHandler(u domain.ShortURLUsecase) *URLHandler {
-	return &URLHandler{usecase: u}
+func NewURLHandler(u domain.ShortURLUsecase, frontendURL string) *URLHandler {
+	return &URLHandler{
+		usecase:     u,
+		frontendURL: frontendURL,
+	}
 }
 
 
 func (h *URLHandler) ShortenURL(c *gin.Context) {
-	FRONTEND_URL := os.Getenv("FRONTEND_URL")
 	var req ShortenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid URL provided"})
+		return
+	}
+
+	if h.frontendURL == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "shortener service is misconfigured"})
 		return
 	}
 
@@ -39,7 +47,7 @@ func (h *URLHandler) ShortenURL(c *gin.Context) {
 		return
 	}
 
-	fullShortURL := FRONTEND_URL + "/r/" + shortCode
+	fullShortURL := h.frontendURL + "/r/" + shortCode
 	c.JSON(http.StatusCreated, ShortenResponse{ShortURL: fullShortURL})
 }
 
@@ -48,8 +56,17 @@ func (h *URLHandler) ResolveURL(c *gin.Context) {
 
 	longURL, err := h.usecase.Resolve(c.Request.Context(), code)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "The short link does not exist"})
-		return
+		switch {
+		case errors.Is(err, domain.ErrURLNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": "The short link does not exist"})
+			return
+		case errors.Is(err, domain.ErrURLExpired):
+			c.JSON(http.StatusGone, gin.H{"error": "The short link has expired"})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to resolve short link"})
+			return
+		}
 	}
 
 	c.Redirect(http.StatusMovedPermanently, longURL)
@@ -59,8 +76,17 @@ func (h *URLHandler) GetStats(c *gin.Context) {
 	code := c.Param("code")
 	url, err := h.usecase.GetStats(c.Request.Context(), code)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "The short link does not exist"})
-		return
+		switch {
+		case errors.Is(err, domain.ErrURLNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": "The short link does not exist"})
+			return
+		case errors.Is(err, domain.ErrURLExpired):
+			c.JSON(http.StatusGone, gin.H{"error": "The short link has expired"})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch stats"})
+			return
+		}
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"visit_count":  url.VisitCount,

@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
+export const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
+export const apiConfigured = !!API_BASE_URL;
 
 if (!API_BASE_URL) {
   console.error("VITE_API_URL is not set; API calls will fail.");
@@ -13,7 +14,27 @@ export interface StatsResponse {
   original_url: string;
 }
 
+export interface ApiError extends Error {
+  status?: number;
+  body?: unknown;
+}
+
+function createApiError(
+  message: string,
+  status?: number,
+  body?: unknown,
+): ApiError {
+  const err = new Error(message) as ApiError;
+  err.status = status;
+  err.body = body;
+  return err;
+}
+
 export async function shortenUrl(longUrl: string): Promise<ShortenResponse> {
+  if (!API_BASE_URL) {
+    throw createApiError("API base URL is not configured");
+  }
+
   const response = await fetch(`${API_BASE_URL}/api/shorten`, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
@@ -21,25 +42,83 @@ export async function shortenUrl(longUrl: string): Promise<ShortenResponse> {
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`API error (${response.status}): ${errorText}`);
+    const contentType = response.headers.get("content-type") ?? "";
+    let body: unknown = undefined;
+    let message = `Request failed with status ${response.status}`;
+
+    try {
+      if (contentType.includes("application/json")) {
+        body = await response.json();
+        const asRecord = body as Record<string, unknown>;
+        const maybeMsg =
+          (asRecord.error as string | undefined) ??
+          (asRecord.message as string | undefined);
+        if (maybeMsg) {
+          message = maybeMsg;
+        }
+      } else {
+        const text = await response.text();
+        body = text;
+        if (text) {
+          message = text;
+        }
+      }
+    } catch {
+      // swallow parse error and fall back to default message
+    }
+
+    throw createApiError(message, response.status, body);
   }
 
   const data = (await response.json()) as ShortenResponse;
   if (!data.short_url) {
-    throw new Error("No short_url in response");
+    throw createApiError("No short_url in response", response.status);
   }
   return data;
 }
 
 export async function fetchStats(code: string): Promise<StatsResponse> {
+  if (!API_BASE_URL) {
+    throw createApiError("API base URL is not configured");
+  }
+
   const response = await fetch(`${API_BASE_URL}/api/stats/${code}`);
   if (!response.ok) {
-    throw new Error("Stats not found");
+    let message = "Failed to fetch stats";
+    try {
+      const contentType = response.headers.get("content-type") ?? "";
+      if (contentType.includes("application/json")) {
+        const body = (await response.json()) as Record<string, unknown>;
+        const maybeMsg =
+          (body.error as string | undefined) ??
+          (body.message as string | undefined);
+        if (maybeMsg) {
+          message = maybeMsg;
+        }
+      } else {
+        const text = await response.text();
+        if (text) {
+          message = text;
+        }
+      }
+    } catch {
+      // ignore parse errors
+    }
+    throw createApiError(message, response.status);
   }
   return (await response.json()) as StatsResponse;
 }
 
-export function buildRedirectUrl(code: string): string {
-  return `${API_BASE_URL}/api/${code}`;
+export function buildRedirectUrl(code: string): string | null {
+  if (!code) return null;
+
+  if (API_BASE_URL) {
+    return `${API_BASE_URL}/api/${code}`;
+  }
+
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return `${window.location.origin}/r/${code}`;
+  }
+
+  return null;
 }

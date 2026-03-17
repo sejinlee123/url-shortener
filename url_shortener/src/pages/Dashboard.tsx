@@ -1,7 +1,8 @@
 import {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {ArrowLeft, Copy, BarChart3, Trash2} from "lucide-react";
+import {ArrowLeft, Copy, BarChart3, Trash2, Check} from "lucide-react";
 import Layout from "../components/Layout";
+import {copyToClipboard} from "../utils/clipboard";
 
 const HISTORY_KEY = "url_shortener_history";
 
@@ -15,6 +16,7 @@ type SavedLink = {
 export default function Dashboard() {
   const [links, setLinks] = useState<SavedLink[]>([]);
   const navigate = useNavigate();
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const syncAndSet = (next: SavedLink[]) => {
     setLinks(next);
@@ -33,7 +35,10 @@ export default function Dashboard() {
   };
 
   const handleCopy = (shortUrl: string) => {
-    navigator.clipboard.writeText(shortUrl);
+    copyToClipboard(shortUrl).finally(() => {
+      setCopiedKey(shortUrl);
+      setTimeout(() => setCopiedKey(null), 2000);
+    });
   };
 
   useEffect(() => {
@@ -110,8 +115,17 @@ export default function Dashboard() {
                   onClick={() => handleCopy(link.shortUrl)}
                   className="inline-flex items-center gap-1 text-xs font-semibold text-[#6f1d1b] hover:text-[#432818] bg-white/80 hover:bg-white px-2.5 py-1.5 rounded-lg border border-[#bb9457] transition-colors"
                 >
-                  <Copy size={14} />
-                  Copy
+                  {copiedKey === link.shortUrl ? (
+                    <>
+                      <Check size={14} />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} />
+                      Copy
+                    </>
+                  )}
                 </button>
                 <button
                   type="button"

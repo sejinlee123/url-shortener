@@ -13,15 +13,13 @@ export default function RedirectHandler() {
       return;
     }
 
-    Promise.resolve(buildRedirectUrl(code))
-      .then((url) => {
-        if (!url) {
-          setError(true);
-        } else {
-          window.location.replace(url);
-        }
-      })
-      .catch(() => setError(true));
+    const url = buildRedirectUrl(code);
+    if (!url) {
+      setError(true);
+      return;
+    }
+
+    window.location.replace(url);
   }, [code]);
 
   if (error) {

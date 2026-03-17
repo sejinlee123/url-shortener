@@ -2,27 +2,47 @@ import {useEffect, useState} from "react";
 import {useParams, Link} from "react-router-dom";
 import {Copy, Check, BarChart3, ArrowLeft, ExternalLink} from "lucide-react";
 import Layout from "../components/Layout";
-import {fetchStats} from "../api/client";
+import {fetchStats, type StatsResponse} from "../api/client";
+import {copyToClipboard} from "../utils/clipboard";
 
 export default function Stats() {
   const {code} = useParams();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<StatsResponse | null>(null);
   const [copied, setCopied] = useState(false);
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const shortUrl = `${window.location.origin}/r/${code}`;
 
   useEffect(() => {
     if (!code) return;
-    fetchStats(code).then(setStats).catch(console.error);
+
+    setStatus("loading");
+    setErrorMessage(null);
+
+    fetchStats(code)
+      .then((data) => {
+        setStats(data);
+        setStatus("success");
+      })
+      .catch((err) => {
+        console.error(err);
+        setStats(null);
+        setStatus("error");
+        const message =
+          err instanceof Error ? err.message : "Failed to load stats";
+        setErrorMessage(message);
+      });
   }, [code]);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(shortUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    copyToClipboard(shortUrl).finally(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
-  if (!stats)
+  if (status === "loading" || status === "idle") {
     return (
       <Layout>
         <div className="text-center animate-pulse text-[#99582a]">
@@ -30,6 +50,37 @@ export default function Stats() {
         </div>
       </Layout>
     );
+  }
+
+  if (status === "error" || !stats) {
+    return (
+      <Layout>
+        <div className="max-w-md mx-auto text-center space-y-4">
+          <h1 className="text-2xl font-extrabold text-[#432818]">
+            Unable to load stats
+          </h1>
+          <p className="text-sm text-[#99582a]">
+            {errorMessage ??
+              "The stats for this link are not available. It may have expired or never existed."}
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <Link
+              to="/"
+              className="bg-[#6f1d1b] hover:bg-[#432818] text-[#ffe6a7] font-semibold px-4 py-2 rounded-xl transition-all text-sm"
+            >
+              Go Home
+            </Link>
+            <Link
+              to="/dashboard"
+              className="text-[#6f1d1b] hover:text-[#432818] font-semibold text-sm"
+            >
+              View Dashboard
+            </Link>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
