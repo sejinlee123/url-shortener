@@ -74,11 +74,11 @@
       response_page_path    = "/index.html"
     }
 
-    viewer_certificate {
-      acm_certificate_arn      = "arn:aws:acm:us-east-1:${data.aws_caller_identity.current.account_id}:certificate/${var.acm_certificate_id}"
-      ssl_support_method       = "sni-only"
-      minimum_protocol_version = "TLSv1.2_2021"
-    }
+viewer_certificate {
+  acm_certificate_arn      = aws_acm_certificate_validation.cert_validation.certificate_arn
+  ssl_support_method       = "sni-only"
+  minimum_protocol_version = "TLSv1.2_2021"
+}
 
     tags = {
       Created_By = var.created_by
