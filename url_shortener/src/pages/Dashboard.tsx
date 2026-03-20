@@ -22,9 +22,7 @@ export default function Dashboard() {
     setLinks(next);
     try {
       localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
-    } catch {
-      // ignore
-    }
+    } catch {}
   };
 
   const handleDelete = (code: string, createdAt: string) => {
@@ -49,9 +47,7 @@ export default function Dashboard() {
       if (Array.isArray(parsed)) {
         setLinks(parsed.slice(0, 5));
       }
-    } catch {
-      // ignore
-    }
+    } catch {}
   }, []);
 
   if (links.length === 0) {

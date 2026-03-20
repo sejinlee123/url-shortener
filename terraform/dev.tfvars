@@ -7,3 +7,5 @@ db_name     = "url_shortener"
 db_user     = "postgres"
 
 frontend_url = "https://urlshortenerfree.xyz"
+
+acm_certificate_domain = "urlshortenerfree.xyz"

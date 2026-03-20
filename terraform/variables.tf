@@ -44,11 +44,17 @@ variable "db_password" {
 variable "frontend_url" {
   type        = string
   default     = "https://placeholder.cloudfront.net"
-  description = "Full URL of the frontend (e.g. https://urlshortenerfree.xyz). Used for API Gateway CORS and Lambda FRONTEND_URL."
+  description = "Public frontend URL (CORS and Lambda FRONTEND_URL)."
 }
 
-variable "acm_certificate_id" {
+variable "acm_certificate_domain" {
   type        = string
-  default     = "65728b60-4f66-42e6-be8b-62048d1dbbdc"
-  description = "ACM certificate ID in us-east-1 for urlshortenerfree.xyz. Certificate must be in us-east-1 for CloudFront."
+  default     = "urlshortenerfree.xyz"
+  description = "ACM certificate domain (us-east-1) for data lookup."
+}
+
+variable "cloudfront_acm_certificate_arn" {
+  type        = string
+  default     = ""
+  description = "ACM certificate ARN (us-east-1). If empty, lookup by acm_certificate_domain."
 }

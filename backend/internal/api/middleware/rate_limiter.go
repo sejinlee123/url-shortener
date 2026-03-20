@@ -14,8 +14,6 @@ type rateLimiter struct {
 	window   time.Duration
 }
 
-// Max number of shorten requests per IP in the window.
-// Kept deliberately small since this is a hobby project.
 const requestsPerIPPerMinute = 5
 func newRateLimiter(limit int, window time.Duration) *rateLimiter {
 	return &rateLimiter{

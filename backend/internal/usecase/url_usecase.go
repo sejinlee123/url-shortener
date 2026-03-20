@@ -54,10 +54,8 @@ func (u *URLUsecase) Resolve(ctx context.Context, code string) (string, error) {
 	var longURL string
 	var err error
 
-	// Try Cache
 	longURL, err = u.cache.Get(ctx, code).Result()
 
-	// Cache Miss -> Get from DB and Save to Cache 
 	if err != nil {
 		url, dbErr := u.repo.GetByCode(ctx, code)
 		if dbErr != nil {
@@ -72,7 +70,6 @@ func (u *URLUsecase) Resolve(ctx context.Context, code string) (string, error) {
 			return "", domain.ErrURLExpired
 		}
 
-		// Keeps active links alive
 		newExpiry := time.Now().Add(7 * 24 * time.Hour)
 		url.ExpiresAt = &newExpiry
 		if updErr := u.repo.Update(ctx, url); updErr != nil {

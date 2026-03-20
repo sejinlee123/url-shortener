@@ -63,9 +63,7 @@ export async function shortenUrl(longUrl: string): Promise<ShortenResponse> {
           message = text;
         }
       }
-    } catch {
-      // swallow parse error and fall back to default message
-    }
+    } catch {}
 
     throw createApiError(message, response.status, body);
   }
@@ -101,9 +99,7 @@ export async function fetchStats(code: string): Promise<StatsResponse> {
           message = text;
         }
       }
-    } catch {
-      // ignore parse errors
-    }
+    } catch {}
     throw createApiError(message, response.status);
   }
   return (await response.json()) as StatsResponse;

@@ -11,7 +11,6 @@
     price_class         = "PriceClass_100"
     aliases             = ["urlshortenerfree.xyz", "*.urlshortenerfree.xyz"]
 
-    # S3 bucket: frontend static assets
     origin {
       domain_name              = aws_s3_bucket.deployment_bucket.bucket_regional_domain_name
       origin_access_control_id = aws_cloudfront_origin_access_control.cloudfront_oac.id
@@ -39,18 +38,17 @@
       target_origin_id       = "origin-bucket-${aws_s3_bucket.deployment_bucket.id}"
       viewer_protocol_policy = "redirect-to-https"
       compress               = true
-      cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized
+      cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6"
     }
 
-    # Route /api/* to API Gateway (no cache, forward viewer headers except Host)
     ordered_cache_behavior {
       path_pattern           = "/api/*"
       target_origin_id       = "MyGolangBackend"
       viewer_protocol_policy = "redirect-to-https"
       allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "PATCH", "POST", "DELETE"]
       cached_methods         = ["GET", "HEAD"]
-      cache_policy_id        = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad" # CachingDisabled
-      origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac" # AllViewerExceptHostHeader
+      cache_policy_id        = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"
+      origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac"
       compress               = true
     }
 
@@ -74,11 +72,11 @@
       response_page_path    = "/index.html"
     }
 
-viewer_certificate {
-  acm_certificate_arn      = aws_acm_certificate_validation.cert_validation.certificate_arn
-  ssl_support_method       = "sni-only"
-  minimum_protocol_version = "TLSv1.2_2021"
-}
+    viewer_certificate {
+      acm_certificate_arn      = local.cloudfront_acm_arn
+      ssl_support_method       = "sni-only"
+      minimum_protocol_version = "TLSv1.2_2021"
+    }
 
     tags = {
       Created_By = var.created_by

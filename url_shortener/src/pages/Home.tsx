@@ -45,16 +45,12 @@ export default function Home() {
       if (Array.isArray(parsed) && parsed.length > 0) {
         setHasHistory(true);
       }
-    } catch {
-      // ignore
-    }
+    } catch {}
 
     try {
       const consentRaw = localStorage.getItem(CONSENT_KEY);
       setHasConsented(consentRaw === "true");
-    } catch {
-      // ignore
-    }
+    } catch {}
   }, []);
 
   const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
@@ -83,9 +79,7 @@ export default function Home() {
           ...(Array.isArray(existing) ? existing : []),
         ].slice(0, 5);
         localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
-      } catch {
-        // ignore
-      }
+      } catch {}
 
       setUrl("");
     } catch (err) {
@@ -161,9 +155,7 @@ export default function Home() {
                     setHasConsented(next);
                     try {
                       localStorage.setItem(CONSENT_KEY, next ? "true" : "false");
-                    } catch {
-                      // ignore
-                    }
+                    } catch {}
                   }}
                 />
                 <span>
