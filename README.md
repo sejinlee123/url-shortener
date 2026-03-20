@@ -1,6 +1,6 @@
 # FreeUrlShortener
 
-A simple URL shortener: paste a long link, get a short one, and optionally view basic click stats. Built as a hobby project with a React frontend, Go backend, and AWS infrastructure.
+A URL shortener: paste a long link, get a short one, and optionally view basic click stats. Built as a hobby project with a React frontend, Go backend, and AWS infrastructure.
 
 **Live site:** [https://urlshortenerfree.xyz](https://urlshortenerfree.xyz)
 
@@ -20,10 +20,10 @@ Links expire after 1 week of no use; the create API is rate-limited per IP.
 
 ## Tech stack
 
-| Layer       | Stack |
-|------------|--------|
-| **Frontend** | React, TypeScript, Vite, Tailwind CSS |
-| **Backend**  | Go (Gin), PostgreSQL, Redis |
+| Layer        | Stack                                                                                |
+| ------------ | ------------------------------------------------------------------------------------ |
+| **Frontend** | React, TypeScript, Vite, Tailwind CSS                                                |
+| **Backend**  | Go (Gin), PostgreSQL, Redis                                                          |
 | **Infra**    | AWS Lambda, API Gateway, RDS, ElastiCache, S3, CloudFront, Terraform, GitHub Actions |
 
 ---
