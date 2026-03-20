@@ -1,6 +1,6 @@
 # FreeUrlShortener
 
-A URL shortener: paste a long link, get a short one, and optionally view basic click stats. Built as a hobby project with a React frontend, Go backend, and AWS infrastructure.
+A simple URL shortener: paste a long link, get a short one, and optionally view basic click stats. Built as a hobby project with a React frontend, Go backend, and AWS infrastructure.
 
 **Live site:** [https://urlshortenerfree.xyz](https://urlshortenerfree.xyz)
 
