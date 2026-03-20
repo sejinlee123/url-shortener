@@ -58,9 +58,18 @@ jobs:
       - name: Terraform Apply
         id: tf-apply
         working-directory: ./terraform
+        env:
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          CLOUDFRONT_ACM_CERTIFICATE_ARN: ${{ secrets.CLOUDFRONT_ACM_CERTIFICATE_ARN }}
         run: |
           terraform init
-          terraform apply -auto-approve -var-file="dev.tfvars" -var="db_password=${{ secrets.DB_PASSWORD }}"
+          if [ -n "$CLOUDFRONT_ACM_CERTIFICATE_ARN" ]; then
+            terraform apply -auto-approve -var-file="dev.tfvars" \
+              -var="db_password=$DB_PASSWORD" \
+              -var="cloudfront_acm_certificate_arn=$CLOUDFRONT_ACM_CERTIFICATE_ARN"
+          else
+            terraform apply -auto-approve -var-file="dev.tfvars" -var="db_password=$DB_PASSWORD"
+          fi
           echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_OUTPUT
 
   frontend-deploy:

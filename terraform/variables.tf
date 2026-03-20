@@ -47,14 +47,14 @@ variable "frontend_url" {
   description = "Public frontend URL (CORS and Lambda FRONTEND_URL)."
 }
 
-variable "acm_certificate_domain" {
-  type        = string
-  default     = "urlshortenerfree.xyz"
-  description = "ACM certificate domain (us-east-1) for data lookup."
-}
-
 variable "cloudfront_acm_certificate_arn" {
   type        = string
-  default     = ""
-  description = "ACM certificate ARN (us-east-1). If empty, lookup by acm_certificate_domain."
+  description = "ISSUED ACM certificate ARN in us-east-1 (CloudFront requirement)."
+  validation {
+    condition = (
+      length(trimspace(var.cloudfront_acm_certificate_arn)) > 0 &&
+      can(regex("^arn:aws:acm:us-east-1:[0-9]{12}:certificate/.+", var.cloudfront_acm_certificate_arn))
+    )
+    error_message = "cloudfront_acm_certificate_arn must be a non-empty ACM ARN in us-east-1 (console: ACM → N. Virginia → copy certificate ARN)."
+  }
 }
