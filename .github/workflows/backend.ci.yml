@@ -1,8 +1,6 @@
 name: CI/CD Pipeline
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       deploy_target:
@@ -23,8 +21,7 @@ jobs:
   terraform-and-backend:
     name: Infrastructure and Backend
     if: |
-      github.event_name == 'push' || 
-      github.event.inputs.deploy_target == 'all' || 
+      github.event.inputs.deploy_target == 'all' ||
       github.event.inputs.deploy_target == 'backend_only'
     runs-on: ubuntu-latest
     outputs:
@@ -77,8 +74,7 @@ jobs:
     needs: terraform-and-backend
     if: |
       always() && !failure() && !cancelled() &&
-      (github.event_name == 'push' || 
-       github.event.inputs.deploy_target == 'all' || 
+      (github.event.inputs.deploy_target == 'all' ||
        github.event.inputs.deploy_target == 'frontend_only')
     runs-on: ubuntu-latest
     steps:
