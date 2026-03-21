@@ -59,16 +59,17 @@ jobs:
         id: tf-apply
         working-directory: ./terraform
         env:
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
           CLOUDFRONT_ACM_CERTIFICATE_ARN: ${{ secrets.CLOUDFRONT_ACM_CERTIFICATE_ARN }}
         run: |
           terraform init
           if [ -n "$CLOUDFRONT_ACM_CERTIFICATE_ARN" ]; then
             terraform apply -auto-approve -var-file="dev.tfvars" \
-              -var="db_password=$DB_PASSWORD" \
+              -var="neon_database_url=$NEON_DATABASE_URL" \
               -var="cloudfront_acm_certificate_arn=$CLOUDFRONT_ACM_CERTIFICATE_ARN"
           else
-            terraform apply -auto-approve -var-file="dev.tfvars" -var="db_password=$DB_PASSWORD"
+            terraform apply -auto-approve -var-file="dev.tfvars" \
+              -var="neon_database_url=$NEON_DATABASE_URL"
           fi
           echo "API_URL=$(terraform output -raw api_url)" >> $GITHUB_OUTPUT
 

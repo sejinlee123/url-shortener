@@ -1,34 +1,43 @@
 package config
 
-import "os"
+import (
+	"fmt"
+	"os"
+	"strings"
+)
 
 type Config struct {
-	DBHost    string
-	DBUser    string
-	DBPass    string
-	DBName    string
-	DBPort    string
-	RedisHost string
-	RedisPort string
-	RedisPass string
-	AppPort   string
+	DatabaseURL string
+	DBHost      string
+	DBUser      string
+	DBPass      string
+	DBName      string
+	DBPort      string
+	AppPort     string
 	FrontendURL string
 }
 
+// PostgresDSN returns a libpq/pgx DSN. Prefer DATABASE_URL from Neon; otherwise
+// discrete DB_* env vars (local dev).
+func (c *Config) PostgresDSN() string {
+	if s := strings.TrimSpace(c.DatabaseURL); s != "" {
+		return s
+	}
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=require",
+		c.DBHost, c.DBUser, c.DBPass, c.DBName, c.DBPort)
+}
 
 func Load() *Config {
-    return &Config{
-        DBHost:      getEnv("DB_HOST", ""), 
-        DBUser:      getEnv("DB_USER", ""),
-        DBPass:      getEnv("DB_PASSWORD", ""),
-        DBName:      getEnv("DB_NAME", ""),
-        DBPort:      getEnv("DB_PORT", "5432"),
-        RedisHost:   getEnv("REDIS_HOST", ""),
-        RedisPort:   getEnv("REDIS_PORT", "6379"),
-        RedisPass:   getEnv("REDIS_PASSWORD", ""),
-        AppPort:     getEnv("APP_PORT", "8080"),
-        FrontendURL: getEnv("FRONTEND_URL", ""),
-    }
+	return &Config{
+		DatabaseURL: getEnv("DATABASE_URL", ""),
+		DBHost:      getEnv("DB_HOST", ""),
+		DBUser:      getEnv("DB_USER", ""),
+		DBPass:      getEnv("DB_PASSWORD", ""),
+		DBName:      getEnv("DB_NAME", ""),
+		DBPort:      getEnv("DB_PORT", "5432"),
+		AppPort:     getEnv("APP_PORT", "8080"),
+		FrontendURL: getEnv("FRONTEND_URL", ""),
+	}
 }
 
 func getEnv(key, fallback string) string {

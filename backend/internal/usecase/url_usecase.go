@@ -5,34 +5,29 @@ import (
 	"log"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/sejinlee123/Url_Shortener_Fun/backend/internal/domain"
 	"github.com/sejinlee123/Url_Shortener_Fun/backend/internal/pkg/generator"
 )
+
 var shortened_url_expiration_date_days = 7
 
-type URLUsecase struct{
-	repo domain.ShortURLRepository
+type URLUsecase struct {
+	repo      domain.ShortURLRepository
 	generator *generator.ShortUrlGenerator
-	cache *redis.Client
 }
 
-func NewURLUsecase(repo domain.ShortURLRepository, gen *generator.ShortUrlGenerator, cache *redis.Client) *URLUsecase {
-    return &URLUsecase{
-        repo:      repo,
-        generator: gen,
-        cache:     cache,
-    }
+func NewURLUsecase(repo domain.ShortURLRepository, gen *generator.ShortUrlGenerator) *URLUsecase {
+	return &URLUsecase{
+		repo:      repo,
+		generator: gen,
+	}
 }
-
-
 
 func (u *URLUsecase) Shorten(ctx context.Context, originalURL string) (string, error) {
 	code, err := u.generateUniqueCode(ctx)
 	if err != nil {
 		return "", err
 	}
-
 
 	expiresAt := time.Now().Add(time.Duration(shortened_url_expiration_date_days) * 24 * time.Hour)
 
@@ -51,42 +46,29 @@ func (u *URLUsecase) Shorten(ctx context.Context, originalURL string) (string, e
 }
 
 func (u *URLUsecase) Resolve(ctx context.Context, code string) (string, error) {
-	var longURL string
-	var err error
-
-	longURL, err = u.cache.Get(ctx, code).Result()
-
+	url, err := u.repo.GetByCode(ctx, code)
 	if err != nil {
-		url, dbErr := u.repo.GetByCode(ctx, code)
-		if dbErr != nil {
-			return "", dbErr 
-		}
-
-		// If expired, delete and treat as expired
-		if url.ExpiresAt != nil && url.ExpiresAt.Before(time.Now()) {
-			if delErr := u.repo.Delete(ctx, code); delErr != nil {
-				log.Printf("failed to delete expired url %s: %v", code, delErr)
-			}
-			return "", domain.ErrURLExpired
-		}
-
-		newExpiry := time.Now().Add(7 * 24 * time.Hour)
-		url.ExpiresAt = &newExpiry
-		if updErr := u.repo.Update(ctx, url); updErr != nil {
-			log.Printf("failed to extend expiry for %s: %v", code, updErr)
-		}
-
-		longURL = url.OriginalURL
-
-		u.cache.Set(ctx, code, longURL, 24*time.Hour)
+		return "", err
 	}
 
+	if url.ExpiresAt != nil && url.ExpiresAt.Before(time.Now()) {
+		if delErr := u.repo.Delete(ctx, code); delErr != nil {
+			log.Printf("failed to delete expired url %s: %v", code, delErr)
+		}
+		return "", domain.ErrURLExpired
+	}
+
+	newExpiry := time.Now().Add(7 * 24 * time.Hour)
+	url.ExpiresAt = &newExpiry
+	if updErr := u.repo.Update(ctx, url); updErr != nil {
+		log.Printf("failed to extend expiry for %s: %v", code, updErr)
+	}
 
 	if err := u.repo.IncrementVisit(ctx, code); err != nil {
 		log.Printf("Failed to increment visit for %s: %v", code, err)
 	}
 
-	return longURL, nil
+	return url.OriginalURL, nil
 }
 
 func (u *URLUsecase) GetStats(ctx context.Context, code string) (*domain.ShortURL, error) {
@@ -106,6 +88,5 @@ func (u *URLUsecase) GetStats(ctx context.Context, code string) (*domain.ShortUR
 }
 
 func (u *URLUsecase) generateUniqueCode(ctx context.Context) (string, error) {
-    return u.generator.GenerateUniqueCode(ctx, u.repo) 
+	return u.generator.GenerateUniqueCode(ctx, u.repo)
 }
-

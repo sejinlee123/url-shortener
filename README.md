@@ -23,8 +23,8 @@ Links expire after 1 week of no use; the create API is rate-limited per IP.
 | Layer        | Stack                                                                                |
 | ------------ | ------------------------------------------------------------------------------------ |
 | **Frontend** | React, TypeScript, Vite, Tailwind CSS                                                |
-| **Backend**  | Go (Gin), PostgreSQL, Redis                                                          |
-| **Infra**    | AWS Lambda, API Gateway, RDS, ElastiCache, S3, CloudFront, Terraform, GitHub Actions |
+| **Backend**  | Go (Gin), PostgreSQL ([Neon](https://neon.tech))                                     |
+| **Infra**    | AWS Lambda, API Gateway, S3, CloudFront, Terraform, GitHub Actions                   |
 
 ---
 
@@ -32,8 +32,8 @@ Links expire after 1 week of no use; the create API is rate-limited per IP.
 
 - **`url_shortener/`** – React app (Vite). Build output is deployed to S3 and served via CloudFront.
 - **`backend/`** – Go API (shorten, resolve, stats). Deployed as a Lambda behind API Gateway.
-- **`terraform/`** – AWS resources (VPC, RDS, ElastiCache, Lambda, API Gateway, S3, CloudFront).
-- **`.github/workflows/`** – CI/CD (deploy on push to `main`, optional Terraform destroy workflow).
+- **`terraform/`** – AWS resources (Lambda, API Gateway, S3, CloudFront). Neon provides PostgreSQL separately.
+- **`.github/workflows/`** – CI/CD (deploy on push to `main`). Set GitHub secret **`NEON_DATABASE_URL`** to your Neon connection string (same format as `DATABASE_URL` in Lambda); replace the old **`DB_PASSWORD`** secret.
 
 ---
 

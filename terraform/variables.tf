@@ -25,20 +25,10 @@ variable "object_ownership" {
   type        = string
 }
 
-
-# Database Variables
-variable "db_user" { 
-  type = string 
-}
-
-variable "db_name" { 
-  type = string 
-}
-
-variable "db_password" {
+variable "neon_database_url" {
   type        = string
   sensitive   = true
-  description = "The master password for the database"
+  description = "PostgreSQL connection URI from Neon (Connection string with sslmode=require)."
 }
 
 variable "frontend_url" {

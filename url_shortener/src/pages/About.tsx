@@ -15,8 +15,8 @@ export default function About() {
           <h2 className="font-bold text-[#6f1d1b]">Tech stack</h2>
           <ul className="list-disc list-inside space-y-1">
             <li>Frontend: React + TypeScript + Vite + Tailwind CSS</li>
-            <li>Backend: Go (Gin), PostgreSQL, Redis</li>
-            <li>Infrastructure: AWS Lambda, API Gateway, RDS, ElastiCache, S3, CloudFront, Terraform, Github Actions</li>
+            <li>Backend: Go (Gin), PostgreSQL on Neon</li>
+            <li>Infrastructure: AWS Lambda, API Gateway, S3, CloudFront, Terraform, GitHub Actions</li>
           </ul>
         </div>
         <p className="text-xs text-[#99582a]">
