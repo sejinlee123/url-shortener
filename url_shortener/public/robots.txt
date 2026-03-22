@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://urlshortenerfree.xyz/sitemap.xml
