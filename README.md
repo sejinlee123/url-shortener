@@ -4,7 +4,7 @@ A simple URL shortener: paste a long link, get a short one, and optionally view 
 
 Note that the live code has been migrated to branch neon-migration. This live code removes the cache, and uses a Neon database to reduce costs from $30 monthly to cents.
 
-**Live site:** [https://www.darktidle.com](https://www.darktidle.com)
+**Live site:** [https://urlshortenerfree.xyz](https://urlshortenerfree.xyz)
 
 ---
 
